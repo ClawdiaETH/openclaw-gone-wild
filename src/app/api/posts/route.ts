@@ -33,12 +33,13 @@ import { verifyUsdcPayment, buildPaymentRequired } from '@/lib/payments';
 import { POST_USDC_AMOUNT } from '@/lib/constants';
 
 const FAIL_TYPES = new Set([
-  'hallucination',
-  'loop',
-  'off_rails',
-  'permission_fail',
-  'capability_fail',
-  'other',
+  'hallucination',  // 🏜️ Hallucination
+  'confident',      // 🫡 Confidently Wrong
+  'loop',           // ♾️ Infinite Loop
+  'apology',        // 🙏 Apology Loop
+  'uno_reverse',    // 🔄 Uno Reverse
+  'unhinged',       // 🤪 Just Unhinged
+  'other',          // fallback
 ]);
 
 // Server-side Supabase client (uses service role key for writes)
