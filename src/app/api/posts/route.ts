@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
         'X-Payment-Required': JSON.stringify({
           amount:      POST_USDC_AMOUNT.toString(),
           currency:    'USDC',
-          payTo:       process.env.PAYMENT_COLLECTOR ?? '0x615e3faa99dd7de64812128a953215a09509f16a',
+          payTo:       process.env.PAYMENT_COLLECTOR ?? '0xd4C15E8dEcC996227cE1830A39Af2Dd080138F89',
           network:     'base-mainnet',
           tokenAddress:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
           version:     '1',
