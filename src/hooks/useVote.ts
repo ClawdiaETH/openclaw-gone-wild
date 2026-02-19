@@ -1,38 +1,30 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { queryClient as sharedQueryClient } from '@/lib/queryClient';
 
 interface VoteArgs {
   postId: string;
   voterWallet: string;
+  removing: boolean; // true = un-vote, false = vote
 }
 
 export function useVote() {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient() ?? sharedQueryClient;
 
   return useMutation({
     mutationFn: async ({ postId, voterWallet }: VoteArgs) => {
-      // Insert vote record (unique constraint prevents duplicates)
-      const { error: voteErr } = await supabase
-        .from('votes')
-        .insert({ post_id: postId, voter_wallet: voterWallet });
-      if (voteErr) throw voteErr;
-
-      // Increment upvote count
-      const { data: post, error: fetchErr } = await supabase
-        .from('posts')
-        .select('upvote_count')
-        .eq('id', postId)
-        .single();
-      if (fetchErr) throw fetchErr;
-
-      const { error: updateErr } = await supabase
-        .from('posts')
-        .update({ upvote_count: ((post as any)?.upvote_count ?? 0) + 1 })
-        .eq('id', postId);
-      if (updateErr) throw updateErr;
+      const res = await fetch(`/api/posts/${postId}/upvote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet_address: voterWallet }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? `HTTP ${res.status}`);
+      }
+      return res.json() as Promise<{ ok: boolean; action: 'added' | 'removed'; count: number }>;
     },
 
-    onMutate: async ({ postId }) => {
+    onMutate: async ({ postId, removing }) => {
       await queryClient.cancelQueries({ queryKey: ['posts'] });
       const previous = queryClient.getQueryData(['posts']);
       // Optimistic update
@@ -43,7 +35,9 @@ export function useVote() {
           pages: old.pages.map((pg: any) => ({
             ...pg,
             posts: pg.posts.map((p: any) =>
-              p.id === postId ? { ...p, upvote_count: (p.upvote_count ?? 0) + 1 } : p
+              p.id === postId
+                ? { ...p, upvote_count: Math.max(0, (p.upvote_count ?? 0) + (removing ? -1 : 1)) }
+                : p
             ),
           })),
         };

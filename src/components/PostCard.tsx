@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Post } from '@/types';
 import { truncateAddress, timeAgo, formatUpvotes } from '@/lib/utils';
 import { ReportButton } from './ReportButton';
@@ -42,26 +42,26 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardProps) {
-  const [localVoted, setLocalVoted] = useState(voted);
   const [localCount, setLocalCount] = useState(post.upvote_count);
+
+  // Sync localCount when the server-refreshed post count arrives
+  useEffect(() => { setLocalCount(post.upvote_count); }, [post.upvote_count]);
   const [heartVisible, setHeartVisible] = useState(false);
   const lastTapRef = useRef<number>(0);
 
   function handleVote() {
     if (!walletAddress) { showToast('🔗 Connect wallet to vote'); return; }
-    if (localVoted) { showToast('Already voted 😅'); return; }
-    setLocalVoted(true);
-    setLocalCount(c => c + 1);
+    // Optimistic count update — parent's voted prop will reflect truth after API settles
+    setLocalCount(c => Math.max(0, c + (voted ? -1 : 1)));
     onVote(post.id);
-    showToast('🔥 Vote counted!');
   }
 
   function handleImageTap() {
     const now = Date.now();
     if (now - lastTapRef.current < 350) {
-      // double-tap
-      handleVote();
-      if (!localVoted) {
+      // double-tap = add vote only (heart animation on add, not on remove)
+      if (!voted) {
+        handleVote();
         setHeartVisible(true);
         setTimeout(() => setHeartVisible(false), 700);
       }
@@ -114,7 +114,15 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
 
       {/* ── Card body ── */}
       <div className="px-4 py-3">
-        <h2 className="mb-1 text-base font-semibold leading-snug">{post.title}</h2>
+        <h2 className="mb-1 text-base font-semibold leading-snug">
+          <a
+            href={`/posts/${post.id}`}
+            className="hover:text-[var(--accent)] transition-colors"
+            onClick={e => e.stopPropagation()}
+          >
+            {post.title ?? <span className="italic text-[var(--muted)]">untitled</span>}
+          </a>
+        </h2>
         {post.caption && (
           <p className="mb-2.5 text-sm leading-relaxed text-[var(--muted)]">{post.caption}</p>
         )}
@@ -126,12 +134,13 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
           <button
             onClick={handleVote}
             className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
-              localVoted
+              voted
                 ? 'border-[var(--accent)] bg-[oklch(0.72_0.2_25/0.15)] text-[var(--accent)]'
                 : 'border-[var(--border)] bg-[oklch(0.2_0.015_260)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
             }`}
+            title={voted ? 'Remove vote' : 'Vote this fail'}
           >
-            <span className={`text-sm transition-transform ${localVoted ? 'scale-125' : ''}`}>🔥</span>
+            <span className={`text-sm transition-transform ${voted ? 'scale-125' : ''}`}>🔥</span>
             {formatUpvotes(localCount)}
           </button>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { usePosts, Tab } from '@/hooks/usePosts';
 import { useVote } from '@/hooks/useVote';
@@ -18,8 +18,8 @@ export function PostFeed({ activeTab }: PostFeedProps) {
   const { posts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = usePosts(activeTab);
   const voteMutation = useVote();
 
-  // Voted post IDs (optimistic tracking)
-  const votedIds = useRef<Set<string>>(new Set());
+  // Voted post IDs — useState so toggling triggers re-render of PostCard voted prop
+  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
 
   // Intersection observer for infinite scroll
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -40,9 +40,13 @@ export function PostFeed({ activeTab }: PostFeedProps) {
       showToast('🔗 Sign up to vote');
       return;
     }
-    if (votedIds.current.has(postId)) return;
-    votedIds.current.add(postId);
-    voteMutation.mutate({ postId, voterWallet: address });
+    const removing = votedIds.has(postId);
+    setVotedIds(prev => {
+      const next = new Set(prev);
+      removing ? next.delete(postId) : next.add(postId);
+      return next;
+    });
+    voteMutation.mutate({ postId, voterWallet: address, removing });
   }
 
   if (isLoading) {
@@ -71,7 +75,7 @@ export function PostFeed({ activeTab }: PostFeedProps) {
           <PostCard
             key={post.id}
             post={post}
-            voted={votedIds.current.has(post.id)}
+            voted={votedIds.has(post.id)}
             onVote={handleVote}
             walletAddress={address}
             rank={activeTab === 'hof' ? i + 1 : undefined}
