@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
-import { encodeFunctionData, erc20Abi, parseUnits } from 'viem';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { parseUnits } from 'viem';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useClawdiaBalance } from '@/hooks/useClawdiaBalance';
 import { useClawdiaPrice } from '@/hooks/useClawdiaPrice';
 import { useMember } from '@/hooks/useMember';
 import { supabase } from '@/lib/supabase';
-import { CLAWDIA_ADDRESS, DEAD_ADDRESS, SIGNUP_USD_AMOUNT } from '@/lib/constants';
+import { CLAWDIA_ADDRESS, CLAWDIA_BURN_ABI, SIGNUP_USD_AMOUNT } from '@/lib/constants';
 import { showToast } from './Toast';
 
 interface WalletModalProps {
@@ -25,7 +25,7 @@ export function WalletModal({ open, onClose, onJoined }: WalletModalProps) {
   const [burning, setBurning] = useState(false);
   const [burnTxHash, setBurnTxHash] = useState<`0x${string}` | undefined>();
 
-  const { sendTransactionAsync } = useSendTransaction();
+  const { writeContractAsync } = useWriteContract();
   const { data: receipt } = useWaitForTransactionReceipt({ hash: burnTxHash });
 
   // Calculate how much CLAWDIA = $2 USD
@@ -57,14 +57,13 @@ export function WalletModal({ open, onClose, onJoined }: WalletModalProps) {
     if (!balanceSufficient) { showToast('❌ Insufficient $CLAWDIA balance'); return; }
     try {
       setBurning(true);
-      const data = encodeFunctionData({
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [DEAD_ADDRESS as `0x${string}`, clawdiaNeeded],
-      });
-      const hash = await sendTransactionAsync({
-        to: CLAWDIA_ADDRESS as `0x${string}`,
-        data,
+      // Call burn(uint256) directly on the contract — tokens are destroyed,
+      // not sent to a dead address. Total supply decreases. ✅
+      const hash = await writeContractAsync({
+        address: CLAWDIA_ADDRESS,
+        abi: CLAWDIA_BURN_ABI,
+        functionName: 'burn',
+        args: [clawdiaNeeded],
         chainId: 8453,
       });
       setBurnTxHash(hash);

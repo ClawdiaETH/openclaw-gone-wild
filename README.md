@@ -12,7 +12,7 @@ Users submit screenshots of AI agents misbehaving — hallucinating, looping, co
 
 - 🔥 **Hot / 🆕 New / 🏆 Hall of Fame** feed tabs
 - 📸 Screenshot upload with source link (for verification)  
-- 🪙 **$2 USD in $CLAWDIA burned** to sign up (100% to dead address)
+- 🪙 **$2 USD in $CLAWDIA burned** to sign up via `burn()` — tokens destroyed, supply reduced
 - 👆 One vote per post per wallet — double-tap or 🔥 button
 - 🖥️ Faux-macOS terminal chrome on every post card
 
@@ -105,7 +105,7 @@ Add the three env vars in Vercel dashboard → Settings → Environment Variable
 | Token | $CLAWDIA |
 | Chain | Base (chainId 8453) |
 | Contract | `0xbbd9aDe16525acb4B336b6dAd3b9762901522B07` |
-| Sign-up cost | $2 USD equivalent (burned to `0x000...dEaD`) |
+| Sign-up cost | $2 USD equivalent burned via `burn(uint256)` on the contract |
 | Price feed | CoinGecko free tier |
 
 The signup amount is calculated dynamically from the live $CLAWDIA price — no fixed token amounts, so it stays $2 regardless of price movement.
