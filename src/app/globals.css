@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: oklch(0.11 0.01 260);
+  --bg-card: oklch(0.15 0.01 260);
+  --bg-card-hover: oklch(0.18 0.015 260);
+  --border: oklch(0.22 0.01 260);
+  --text: oklch(0.92 0 0);
+  --muted: oklch(0.55 0.01 260);
+  --accent: oklch(0.72 0.2 25);
+  --accent2: oklch(0.68 0.18 295);
+  --accent3: oklch(0.75 0.16 140);
+  --gold: oklch(0.82 0.18 85);
+  --radius: 12px;
+  --shadow: 0 2px 16px oklch(0 0 0 / 0.35);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-grotesk), system-ui, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Tailwind layer overrides */
+@layer utilities {
+  .font-mono-custom {
+    font-family: var(--font-mono), monospace;
+  }
+}
