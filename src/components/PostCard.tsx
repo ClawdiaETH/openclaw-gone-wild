@@ -17,11 +17,12 @@ const AGENT_LABELS: Record<string, string> = {
 };
 
 const FAIL_LABELS: Record<string, string> = {
-  hallucination: '💭 Hallucination',
-  confident:     '😤 Confidently Wrong',
-  loop:          '🔄 Infinite Loop',
+  hallucination: '🏜️ Hallucination',
+  confident:     '🫡 Confidently Wrong',
+  loop:          '♾️ Infinite Loop',
   apology:       '🙏 Apology Loop',
-  unhinged:      '🤡 Just Unhinged',
+  uno_reverse:   '🔄 Uno Reverse',
+  unhinged:      '🤪 Just Unhinged',
 };
 
 const FAIL_COLORS: Record<string, string> = {
@@ -29,6 +30,7 @@ const FAIL_COLORS: Record<string, string> = {
   confident:     'bg-[oklch(0.82_0.18_85/0.12)] text-[oklch(0.82_0.18_85)] border-[oklch(0.82_0.18_85/0.3)]',
   loop:          'bg-[oklch(0.75_0.16_140/0.12)] text-[oklch(0.75_0.16_140)] border-[oklch(0.75_0.16_140/0.3)]',
   apology:       'bg-[oklch(0.68_0.18_295/0.12)] text-[oklch(0.68_0.18_295)] border-[oklch(0.68_0.18_295/0.3)]',
+  uno_reverse:   'bg-[oklch(0.72_0.18_320/0.12)] text-[oklch(0.78_0.18_320)] border-[oklch(0.72_0.18_320/0.3)]',
   unhinged:      'bg-[oklch(0.72_0.2_25/0.12)] text-[oklch(0.78_0.18_25)] border-[oklch(0.72_0.2_25/0.3)]',
 };
 
