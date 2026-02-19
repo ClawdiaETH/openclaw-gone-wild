@@ -1,55 +1,67 @@
 /**
  * GET /api/og/[id] — Branded OG share image for a post.
  *
- * Fixed three-section layout regardless of screenshot dimensions:
+ * Layout (1200×630):
  *   Title bar : 52px
  *   Screenshot: 488px  (image contained + letterboxed)
  *   Footer    : 90px
- *   ──────────────────
- *   Total     : 630px  (standard 1200×630 OG)
  *
- * ?hq=1  →  2400×1260 high-quality version for download
- *
- * Fonts: Space Grotesk loaded from Google Fonts (cached in module scope).
+ * Performance:
+ *  - Fonts loaded from bundled TTF files via fs.readFileSync (no network call)
+ *  - Screenshot fetched server-side with 5s timeout → base64 data URL
+ *    (avoids Satori's slow internal fetch + any CORS issues)
  */
 
 import { ImageResponse } from 'next/og';
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest } from 'next/server';
+import { createClient }  from '@supabase/supabase-js';
+import { NextRequest }   from 'next/server';
+import path              from 'path';
+import fs                from 'fs';
 
 export const dynamic = 'force-dynamic';
 
-// Note: HQ (?hq=1) 2× scaling was removed — 2400×1260 exceeds Vercel serverless limits.
-// 1200×630 is the standard OG card size and renders at max quality.
+// ── Fonts (loaded once, cached in module scope) ───────────────────────────────
 
-// ── Font loading (cached across requests) ────────────────────────────────────
+let _fontRegular: ArrayBuffer | null = null;
+let _fontBold:    ArrayBuffer | null = null;
 
-let fontRegular: ArrayBuffer | null = null;
-let fontBold:    ArrayBuffer | null = null;
-
-async function loadGoogleFont(weight: 400 | 700): Promise<ArrayBuffer | null> {
+function loadFonts(): { name: string; data: ArrayBuffer; weight: 400 | 700; style: 'normal' }[] {
   try {
-    const css = await fetch(
-      `https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@${weight}&display=swap`,
-      { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' } },
-    ).then(r => r.text());
-
-    const url = css.match(/url\((.+?\.woff2)\)/)?.[1];
-    if (!url) return null;
-    return fetch(url).then(r => r.arrayBuffer());
-  } catch {
-    return null;
+    if (!_fontRegular) {
+      const p = path.join(process.cwd(), 'public', 'fonts', 'inter-400.ttf');
+      _fontRegular = fs.readFileSync(p).buffer as ArrayBuffer;
+    }
+    if (!_fontBold) {
+      const p = path.join(process.cwd(), 'public', 'fonts', 'inter-700.ttf');
+      _fontBold = fs.readFileSync(p).buffer as ArrayBuffer;
+    }
+    return [
+      { name: 'Inter', data: _fontRegular!, weight: 400, style: 'normal' },
+      { name: 'Inter', data: _fontBold!,    weight: 700, style: 'normal' },
+    ];
+  } catch (e) {
+    console.error('[og] font load failed:', e);
+    return [];
   }
 }
 
-async function getFonts() {
-  if (!fontRegular) fontRegular = await loadGoogleFont(400);
-  if (!fontBold)    fontBold    = await loadGoogleFont(700);
+// ── Image helper ──────────────────────────────────────────────────────────────
 
-  const fonts: { name: string; data: ArrayBuffer; weight: 400 | 700; style: 'normal' }[] = [];
-  if (fontRegular) fonts.push({ name: 'Space Grotesk', data: fontRegular, weight: 400, style: 'normal' });
-  if (fontBold)    fonts.push({ name: 'Space Grotesk', data: fontBold,    weight: 700, style: 'normal' });
-  return fonts;
+/** Fetch an image and return it as a base64 data URL with a 5s timeout. */
+async function toDataUrl(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const buf  = await res.arrayBuffer();
+    const mime = res.headers.get('content-type') ?? 'image/jpeg';
+    const b64  = Buffer.from(buf).toString('base64');
+    return `data:${mime};base64,${b64}`;
+  } catch {
+    return null;
+  }
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -92,21 +104,17 @@ function getSupabaseAdmin() {
 
 // ── Route ─────────────────────────────────────────────────────────────────────
 
+const W = 1200, H = 630, TITLEBAR_H = 52, IMG_H = 488, FOOTER_H = 90;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
 
-  const W          = 1200;
-  const H          = 630;
-  const TITLEBAR_H = 52;
-  const IMG_H      = 488;
-  const FOOTER_H   = 90;
-
   const { data: post } = await getSupabaseAdmin()
     .from('posts')
-    .select('*')
+    .select('id, title, image_url, agent, fail_type, upvote_count')
     .eq('id', id)
     .single();
 
@@ -117,8 +125,13 @@ export async function GET(
   const badge      = FAIL_BADGE[post.fail_type]    ?? FAIL_BADGE.other;
   const title      = post.title ?? '';
 
-  const fonts = await getFonts();
-  const fontFamily = fonts.length > 0 ? 'Space Grotesk' : 'ui-sans-serif, system-ui, sans-serif';
+  // Fetch screenshot as data URL in parallel with font load (both are fast)
+  const [fonts, imgSrc] = await Promise.all([
+    Promise.resolve(loadFonts()),
+    post.image_url ? toDataUrl(post.image_url) : Promise.resolve(null),
+  ]);
+
+  const fontFamily = fonts.length > 0 ? 'Inter' : 'system-ui, sans-serif';
 
   return new ImageResponse(
     (
@@ -143,18 +156,18 @@ export async function GET(
             flexShrink:   0,
             background:   '#080810',
             borderBottom: '1px solid #1e1e2e',
-            padding:      `0 ${20 * scale}px`,
-            gap:          8 * scale,
+            padding:      '0 20px',
+            gap:          8,
           }}
         >
-          <div style={{ width: 13 * scale, height: 13 * scale, borderRadius: 999, background: '#ff5f57' }} />
-          <div style={{ width: 13 * scale, height: 13 * scale, borderRadius: 999, background: '#ffbd2e', marginLeft: 5 * scale }} />
-          <div style={{ width: 13 * scale, height: 13 * scale, borderRadius: 999, background: '#28c840', marginLeft: 5 * scale }} />
+          <div style={{ width: 13, height: 13, borderRadius: 999, background: '#ff5f57' }} />
+          <div style={{ width: 13, height: 13, borderRadius: 999, background: '#ffbd2e', marginLeft: 5 }} />
+          <div style={{ width: 13, height: 13, borderRadius: 999, background: '#28c840', marginLeft: 5 }} />
           <span
             style={{
-              marginLeft:   12 * scale,
+              marginLeft:   12,
               color:        '#666',
-              fontSize:     15 * scale,
+              fontSize:     14,
               fontFamily:   'monospace',
               whiteSpace:   'nowrap',
               overflow:     'hidden',
@@ -178,15 +191,15 @@ export async function GET(
             overflow:       'hidden',
           }}
         >
-          {post.image_url ? (
+          {imgSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={post.image_url}
+              src={imgSrc}
               alt=""
               style={{ width: W, height: IMG_H, objectFit: 'contain' }}
             />
           ) : (
-            <span style={{ color: '#333', fontSize: 48 * scale }}>🤦</span>
+            <span style={{ color: '#444', fontSize: 72 }}>🤦</span>
           )}
         </div>
 
@@ -201,7 +214,7 @@ export async function GET(
             flexShrink:     0,
             background:     '#0d0d12',
             borderTop:      '1px solid #1e1e2e',
-            padding:        `0 ${24 * scale}px`,
+            padding:        '0 24px',
           }}
         >
           {/* Left: title + badges */}
@@ -209,7 +222,7 @@ export async function GET(
             style={{
               display:       'flex',
               flexDirection: 'column',
-              gap:           8 * scale,
+              gap:           8,
               flex:          1,
               minWidth:      0,
               overflow:      'hidden',
@@ -220,7 +233,7 @@ export async function GET(
                 style={{
                   color:        '#f0f0f0',
                   fontWeight:   700,
-                  fontSize:     17 * scale,
+                  fontSize:     17,
                   whiteSpace:   'nowrap',
                   overflow:     'hidden',
                   textOverflow: 'ellipsis',
@@ -229,15 +242,15 @@ export async function GET(
                 {title}
               </span>
             ) : null}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 * scale }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span
                 style={{
                   background:   badge.bg,
                   color:        badge.color,
                   border:       `1px solid ${badge.border}`,
                   borderRadius: 999,
-                  padding:      `${4 * scale}px ${12 * scale}px`,
-                  fontSize:     12 * scale,
+                  padding:      '4px 12px',
+                  fontSize:     12,
                   fontWeight:   700,
                   whiteSpace:   'nowrap',
                 }}
@@ -250,8 +263,8 @@ export async function GET(
                   color:        '#777',
                   border:       '1px solid rgba(255,255,255,0.1)',
                   borderRadius: 999,
-                  padding:      `${4 * scale}px ${12 * scale}px`,
-                  fontSize:     12 * scale,
+                  padding:      '4px 12px',
+                  fontSize:     12,
                   whiteSpace:   'nowrap',
                 }}
               >
@@ -265,23 +278,19 @@ export async function GET(
             style={{
               display:    'flex',
               alignItems: 'center',
-              gap:        8 * scale,
+              gap:        8,
               flexShrink: 0,
-              marginLeft: 32 * scale,
+              marginLeft: 32,
             }}
           >
-            <span style={{ fontSize: 24 * scale }}>🧑‍💻</span>
-            <span style={{ color: '#ff6b35', fontWeight: 800, fontSize: 22 * scale, fontFamily }}>
+            <span style={{ fontSize: 22 }}>💀</span>
+            <span style={{ color: '#ff6b35', fontWeight: 800, fontSize: 20, fontFamily }}>
               agentfails.wtf
             </span>
           </div>
         </div>
       </div>
     ),
-    {
-      width:  W,
-      height: H,
-      fonts,
-    },
+    { width: W, height: H, fonts },
   );
 }
