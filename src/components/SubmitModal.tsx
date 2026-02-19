@@ -14,7 +14,7 @@ interface SubmitModalProps {
 }
 
 const AGENTS = [
-  { value: 'openclaw', label: '🐚 OpenClaw / Clawdia' },
+  { value: 'openclaw', label: '🦞 OpenClaw' },
   { value: 'claude',   label: '🤖 Claude (Anthropic)' },
   { value: 'chatgpt',  label: '💚 ChatGPT (OpenAI)' },
   { value: 'gemini',   label: '💙 Gemini (Google)' },
