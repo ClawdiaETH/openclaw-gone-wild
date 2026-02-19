@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import Image from 'next/image';
 import { Post } from '@/types';
 import { truncateAddress, timeAgo, formatUpvotes } from '@/lib/utils';
 import { ReportButton } from './ReportButton';

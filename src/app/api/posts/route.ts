@@ -32,6 +32,10 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyUsdcPayment, buildPaymentRequired } from '@/lib/payments';
 import { POST_USDC_AMOUNT } from '@/lib/constants';
 
+// Cache the posts feed on Vercel's CDN for 30s — re-fetches from Supabase after expiry.
+// POST requests automatically bypass this and trigger revalidation.
+export const revalidate = 30;
+
 const FAIL_TYPES = new Set([
   'hallucination',  // 🏜️ Hallucination
   'confident',      // 🫡 Confidently Wrong
