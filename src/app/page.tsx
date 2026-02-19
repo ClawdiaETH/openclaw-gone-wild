@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { queryClient } from '@/lib/queryClient';
 import { Header } from '@/components/Header';
 import { TabBar } from '@/components/TabBar';
@@ -12,13 +13,19 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { Toast } from '@/components/Toast';
 import { Tab } from '@/hooks/usePosts';
 
-export default function Home() {
-  const [activeTab, setActiveTab] = useState<Tab>('hot');
+const VALID_TABS: Tab[] = ['hot', 'new', 'hof', 'openclaw', 'other'];
+
+/** Inner component — uses useSearchParams, must be inside Suspense */
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get('tab') as Tab | null;
+  const initialTab: Tab = urlTab && VALID_TABS.includes(urlTab) ? urlTab : 'hot';
+
+  const [activeTab, setActiveTab]       = useState<Tab>(initialTab);
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
-  function handleSubmitClick() {
-    setSubmitModalOpen(true);
-  }
+
+  function handleSubmitClick() { setSubmitModalOpen(true); }
 
   function handleNeedSignup() {
     setSubmitModalOpen(false);
@@ -26,12 +33,10 @@ export default function Home() {
   }
 
   function handleJoined() {
-    // Refresh member status — re-open submit if they came via submit flow
     setSubmitModalOpen(true);
   }
 
   function handleSubmitted() {
-    // Switch to New tab and refetch
     setActiveTab('new');
     void queryClient.invalidateQueries({ queryKey: ['posts'] });
   }
@@ -66,5 +71,13 @@ export default function Home() {
 
       <Toast />
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
   );
 }

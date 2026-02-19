@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { PermalinkHeader } from './PermalinkHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { TabBar } from '@/components/TabBar';
 import { Toast } from '@/components/Toast';
 import { PostPermalinkView } from './PostPermalinkView';
 import type { Post, Comment } from '@/types';
@@ -78,6 +79,9 @@ export default async function PostPage(
   return (
     <>
       <PermalinkHeader />
+
+      {/* Nav tabs persist on permalink — clicking navigates back to feed with that filter */}
+      <nav><TabBar linkMode /></nav>
 
       <main className="mx-auto max-w-[680px] px-4 py-5">
         <PostPermalinkView post={post} initialComments={comments} />
