@@ -11,7 +11,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'hot',      label: '🔥 Hot' },
   { id: 'new',      label: '🆕 New' },
   { id: 'hof',      label: '🏆 Hall of Fame' },
-  { id: 'openclaw', label: '🐚 OpenClaw' },
+  { id: 'openclaw', label: '🦞 OpenClaw' },
   { id: 'other',    label: '🤖 Other AIs' },
 ];
 
