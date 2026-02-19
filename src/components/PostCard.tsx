@@ -8,7 +8,7 @@ import { ReportButton } from './ReportButton';
 import { showToast } from './Toast';
 
 const AGENT_LABELS: Record<string, string> = {
-  openclaw: '🐚 OpenClaw',
+  openclaw: '🦞 OpenClaw',
   claude:   '🤖 Claude',
   chatgpt:  '💚 ChatGPT',
   gemini:   '💙 Gemini',
