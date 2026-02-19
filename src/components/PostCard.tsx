@@ -147,10 +147,16 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
 
           {/* Meta: submitter + time */}
           <div className="ml-auto flex items-center gap-1.5 text-[10px] text-[var(--muted)]">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[8px] font-bold text-white">
-              {post.submitter_wallet[2]?.toUpperCase()}
-            </span>
-            <span>{truncateAddress(post.submitter_wallet)}</span>
+            {post.submitter_wallet ? (
+              <>
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[8px] font-bold text-white">
+                  {post.submitter_wallet[2]?.toUpperCase()}
+                </span>
+                <span>{truncateAddress(post.submitter_wallet)}</span>
+              </>
+            ) : (
+              <span className="font-mono opacity-60">🤖 agent</span>
+            )}
             <span>·</span>
             <span>{timeAgo(post.created_at)}</span>
           </div>
