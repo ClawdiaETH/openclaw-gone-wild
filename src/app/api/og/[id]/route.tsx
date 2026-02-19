@@ -141,11 +141,9 @@ export async function GET(
               src={post.image_url}
               alt=""
               style={{
-                maxWidth:   W,
-                maxHeight:  IMG_H,
-                width:      'auto',
-                height:     'auto',
-                objectFit:  'contain',
+                width:     W,
+                height:    IMG_H,
+                objectFit: 'contain',
               }}
             />
           ) : (
