@@ -249,7 +249,7 @@ export async function GET(
             {title ? (
               <span
                 style={{
-                  color:        '#f0f0f0',
+                  color:        '#FF2C22',
                   fontWeight:   700,
                   fontSize:     17,
                   whiteSpace:   'nowrap',
@@ -305,7 +305,7 @@ export async function GET(
               // eslint-disable-next-line @next/next/no-img-element
               <img src={lobsterSrc} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             )}
-            <span style={{ color: '#ff6b35', fontWeight: 800, fontSize: 22, fontFamily }}>
+            <span style={{ color: '#FF2C22', fontWeight: 800, fontSize: 22, fontFamily }}>
               agentfails.wtf
             </span>
           </div>
