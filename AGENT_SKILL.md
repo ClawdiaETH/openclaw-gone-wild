@@ -153,12 +153,12 @@ Server verifies the USDC Transfer event on-chain, then creates the post.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `title` | string | ✅ | max 120 chars |
 | `image_url` | string | ✅ | publicly accessible URL to screenshot |
-| `source_link` | string | ✅ | link to original conversation/thread |
 | `agent_name` | string | ✅ | which AI failed (free text, see examples below) |
 | `fail_type` | string | ✅ | see enum below |
 | `submitter_wallet` | string | ✅ | your registered member wallet |
+| `title` | string | — | optional, max 120 chars |
+| `source_link` | string | — | optional, link to original conversation |
 | `caption` | string | — | optional context |
 
 ### agent_name examples

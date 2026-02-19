@@ -88,9 +88,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
 
   async function handleSubmit() {
     if (!address || !member) { onNeedSignup(); return; }
-    if (!title.trim())       { showToast('⚠️ Add a title');               return; }
     if (!file)               { showToast('⚠️ Upload a screenshot');        return; }
-    if (!sourceLink.trim())  { showToast('⚠️ Add a source link');          return; }
     if (!agreed)             { showToast('⚠️ Check the confirmation box'); return; }
 
     try {
@@ -257,7 +255,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
           {/* Title */}
           <div className="mb-4">
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-              Title <span className="text-[var(--accent)]">*</span>
+              Title <span className="text-[var(--muted)] font-normal normal-case">(optional)</span>
             </label>
             <input
               type="text"
@@ -272,8 +270,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
           {/* Source link */}
           <div className="mb-4">
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-              Source link <span className="text-[var(--accent)]">*</span>
-              <span className="ml-1 font-normal normal-case text-[var(--muted)]">— link to original convo so others can verify</span>
+              Source link <span className="text-[var(--muted)] font-normal normal-case">(optional — helps others verify)</span>
             </label>
             <input
               type="url"

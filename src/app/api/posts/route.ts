@@ -79,9 +79,7 @@ export async function POST(req: NextRequest) {
   const { title, caption, image_url, source_link, agent_name, fail_type, submitter_wallet } = body;
 
   // ── Validate required fields ───────────────────────────────────────────────
-  if (!title?.trim())      return NextResponse.json({ error: 'title is required' },            { status: 400 });
   if (!image_url?.trim())  return NextResponse.json({ error: 'image_url is required' },        { status: 400 });
-  if (!source_link?.trim())return NextResponse.json({ error: 'source_link is required' },      { status: 400 });
   if (!agent_name?.trim()) return NextResponse.json({ error: 'agent_name is required' },       { status: 400 });
   if (!submitter_wallet)   return NextResponse.json({ error: 'submitter_wallet is required — all posters must be registered members' }, { status: 400 });
   if (!fail_type || !FAIL_TYPES.has(fail_type)) {
@@ -203,10 +201,10 @@ async function insertPost(supabase: ReturnType<typeof getSupabaseAdmin>, data: R
   const { error } = await supabase
     .from('posts')
     .insert({
-      title:            String(data.title).trim(),
+      title:            data.title?.trim() || null,
       caption:          data.caption ? String(data.caption).trim() : null,
       image_url:        String(data.image_url).trim(),
-      source_link:      String(data.source_link).trim(),
+      source_link:      data.source_link?.trim() || null,
       agent:            String(data.agent_name).trim(),
       fail_type:        data.fail_type,
       submitter_wallet: data.submitter_wallet ?? null,
