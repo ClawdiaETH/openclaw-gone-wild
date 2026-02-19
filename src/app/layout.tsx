@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Space_Mono } from 'next/font/google';
 import './globals.css';
-import { Providers } from './providers';
+import { ClientProviders } from './ClientProviders';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`dark ${spaceGrotesk.variable} ${spaceMono.variable}`}>
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <ClientProviders>{children}</ClientProviders>
         <SpeedInsights />
         <Analytics />
       </body>

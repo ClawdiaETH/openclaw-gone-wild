@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { Header } from '@/components/Header';
 import { TabBar } from '@/components/TabBar';
 import { StatsBar } from '@/components/StatsBar';
@@ -12,7 +12,6 @@ import { Toast } from '@/components/Toast';
 import { Tab } from '@/hooks/usePosts';
 
 export default function Home() {
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>('hot');
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
