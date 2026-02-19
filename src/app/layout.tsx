@@ -18,12 +18,21 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AgentFails.wtf 🤦',
+  title: 'AgentFails.wtf',
   description: 'The internet\'s hall of shame for AI agent fails, hallucinations, and unhinged moments. $CLAWDIA token-gated on Base.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico',    sizes: 'any' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
-    title: 'AgentFails.wtf 🤦',
+    title: 'AgentFails.wtf',
     description: 'Hall of shame for AI agent fails. Token-gated on Base.',
     type: 'website',
+    images: [{ url: '/logo.png', width: 900, height: 900 }],
   },
 };
 
