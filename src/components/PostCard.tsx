@@ -75,13 +75,6 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
   return (
     <article className="relative overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--bg-card)] transition-all duration-200 hover:border-[oklch(0.3_0.02_260)] hover:shadow-lg">
 
-      {/* Hall-of-fame rank badge */}
-      {rank && rank <= 3 && (
-        <div className="absolute left-3 top-3 z-10 rounded px-1.5 py-0.5 font-mono text-xs font-bold" style={{ background: 'var(--gold)', color: 'oklch(0.2 0.05 85)' }}>
-          {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'} #{rank}
-        </div>
-      )}
-
       {/* ── Faux-macOS chrome ── */}
       <div
         className="relative cursor-pointer select-none"
@@ -95,6 +88,12 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
           <span className="ml-2 font-mono text-sm text-[var(--muted)]">
             {AGENT_LABELS[post.agent] ?? post.agent} — session
           </span>
+          {/* Hall-of-fame rank badge — right-aligned in title bar */}
+          {rank && rank <= 3 && (
+            <div className="ml-auto rounded px-1.5 py-0.5 font-mono text-xs font-bold" style={{ background: 'var(--gold)', color: 'oklch(0.2 0.05 85)' }}>
+              {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'} #{rank}
+            </div>
+          )}
         </div>
 
         {/* Screenshot */}
