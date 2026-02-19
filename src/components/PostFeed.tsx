@@ -18,8 +18,30 @@ export function PostFeed({ activeTab, onNeedSignup }: PostFeedProps) {
   const { posts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = usePosts(activeTab);
   const voteMutation = useVote();
 
-  // Voted post IDs — useState so toggling triggers re-render of PostCard voted prop
+  // ── Voted post IDs — persisted to localStorage per wallet ──────────────────
+  // Key is wallet-scoped so switching wallets doesn't bleed state
+  const storageKey = address ? `agentfails:voted:${address.toLowerCase()}` : null;
+
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
+
+  // Load from localStorage when wallet connects / changes
+  useEffect(() => {
+    if (!storageKey) { setVotedIds(new Set()); return; }
+    try {
+      const raw = localStorage.getItem(storageKey);
+      setVotedIds(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+    } catch {
+      setVotedIds(new Set());
+    }
+  }, [storageKey]);
+
+  // Persist whenever votedIds changes (skip if no wallet)
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify([...votedIds]));
+    } catch { /* storage quota exceeded — silently ignore */ }
+  }, [votedIds, storageKey]);
 
   // Intersection observer for infinite scroll
   const sentinelRef = useRef<HTMLDivElement>(null);
