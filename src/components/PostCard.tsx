@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Post } from '@/types';
 import { truncateAddress, timeAgo, formatUpvotes } from '@/lib/utils';
 import { ReportButton } from './ReportButton';
+import { ShareModal } from './ShareModal';
 import { showToast } from './Toast';
 
 const AGENT_LABELS: Record<string, string> = {
@@ -43,6 +44,7 @@ interface PostCardProps {
 
 export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardProps) {
   const [localCount, setLocalCount] = useState(post.upvote_count);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Sync localCount when the server-refreshed post count arrives
   useEffect(() => { setLocalCount(post.upvote_count); }, [post.upvote_count]);
@@ -72,6 +74,7 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
   const failColor = FAIL_COLORS[post.fail_type] ?? FAIL_COLORS.hallucination;
 
   return (
+    <>
     <article className="relative overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--bg-card)] transition-all duration-200 hover:border-[oklch(0.3_0.02_260)] hover:shadow-lg">
 
       {/* ── Faux-macOS chrome ── */}
@@ -186,17 +189,28 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
           {/* Report */}
           <ReportButton postId={post.id} reporterWallet={walletAddress} />
 
-          {/* Permalink / comments */}
+          {/* Discuss — pill button */}
           <a
             href={`/posts/${post.id}#comments`}
-            className="flex items-center gap-1 text-xs text-[var(--muted)] transition-colors hover:text-[var(--text)]"
+            className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[oklch(0.2_0.01_260)] px-3 py-1 text-xs font-semibold text-[var(--text)] transition-all hover:border-[var(--accent)] hover:text-[var(--accent)]"
             onClick={e => e.stopPropagation()}
-            title="View comments · $0.10 USDC per comment"
           >
             💬 discuss
           </a>
+
+          {/* Share */}
+          <button
+            onClick={e => { e.stopPropagation(); setShareOpen(true); }}
+            className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[oklch(0.2_0.01_260)] px-3 py-1 text-xs font-semibold text-[var(--muted)] transition-all hover:border-[oklch(0.75_0.16_140/0.6)] hover:text-[oklch(0.75_0.16_140)]"
+            title="Share this fail"
+          >
+            ↗ share
+          </button>
         </div>
       </div>
     </article>
+
+    <ShareModal post={post} open={shareOpen} onClose={() => setShareOpen(false)} />
+    </>
   );
 }
