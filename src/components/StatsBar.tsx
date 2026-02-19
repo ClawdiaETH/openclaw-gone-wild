@@ -51,8 +51,8 @@ export function StatsBar() {
 function StatItem({ value, label, color }: { value: string; label: string; color: string }) {
   return (
     <div className="text-center">
-      <div className="font-mono text-xl font-bold" style={{ color }}>{value}</div>
-      <div className="mt-0.5 text-[10px] uppercase tracking-wider text-[var(--muted)]">{label}</div>
+      <div className="font-mono text-2xl font-bold" style={{ color }}>{value}</div>
+      <div className="mt-0.5 text-xs uppercase tracking-wider text-[var(--muted)]">{label}</div>
     </div>
   );
 }
