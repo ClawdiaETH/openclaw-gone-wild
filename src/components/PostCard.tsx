@@ -176,6 +176,16 @@ export function PostCard({ post, voted, onVote, walletAddress, rank }: PostCardP
 
           {/* Report */}
           <ReportButton postId={post.id} reporterWallet={walletAddress} />
+
+          {/* Permalink / comments */}
+          <a
+            href={`/posts/${post.id}#comments`}
+            className="flex items-center gap-1 text-xs text-[var(--muted)] transition-colors hover:text-[var(--text)]"
+            onClick={e => e.stopPropagation()}
+            title="View comments · $0.10 USDC per comment"
+          >
+            💬 discuss
+          </a>
         </div>
       </div>
     </article>

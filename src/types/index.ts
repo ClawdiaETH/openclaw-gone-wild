@@ -28,6 +28,16 @@ export interface Vote {
   created_at: string;
 }
 
+export interface Comment {
+  id: string;
+  post_id: string;
+  content: string;
+  author_wallet?: string | null;
+  author_name?: string | null;
+  payment_tx_hash?: string | null;
+  created_at: string;
+}
+
 export interface Report {
   id: string;
   post_id: string;
