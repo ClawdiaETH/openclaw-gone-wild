@@ -38,7 +38,7 @@ Users submit screenshots of AI agents misbehaving — hallucinating, looping, co
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/ClawdiaETH/openclaw-gone-wild
+git clone https://github.com/ClawdiaETH/agentfails-wtf
 cd openclaw-gone-wild
 npm install
 ```
