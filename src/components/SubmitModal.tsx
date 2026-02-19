@@ -2,7 +2,6 @@
 
 import { useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { supabase } from '@/lib/supabase';
 import { useMember } from '@/hooks/useMember';
 import { showToast } from './Toast';
@@ -24,16 +23,17 @@ const AGENTS = [
 ];
 
 const FAIL_TYPES = [
-  { value: 'hallucination', label: '💭 Hallucination' },
-  { value: 'confident',     label: '😤 Confidently Wrong' },
-  { value: 'loop',          label: '🔄 Infinite Loop' },
+  { value: 'hallucination', label: '🏜️ Hallucination' },
+  { value: 'confident',     label: '🫡 Confidently Wrong' },
+  { value: 'loop',          label: '♾️ Infinite Loop' },
   { value: 'apology',       label: '🙏 Apology Loop' },
-  { value: 'unhinged',      label: '🤡 Just Unhinged' },
+  { value: 'uno_reverse',   label: '🔄 Uno Reverse' },
+  { value: 'unhinged',      label: '🤪 Just Unhinged' },
 ];
 
 export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: SubmitModalProps) {
-  const { address, isConnected } = useAccount();
-  const { member, loading: memberLoading } = useMember(address);
+  const { address } = useAccount();
+  const { member } = useMember(address);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState('');
@@ -80,6 +80,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
 
       const { data: urlData } = supabase.storage.from('screenshots').getPublicUrl(path);
 
+      // Insert post
       const { error: insertErr } = await supabase.from('posts').insert({
         title: title.trim(),
         caption: caption.trim() || null,
@@ -96,7 +97,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
       reset();
       onClose();
       onSubmitted();
-    } catch (e: unknown) {
+    } catch (e: any) {
       console.error(e);
       showToast('❌ Submit failed — try again');
     } finally {
@@ -106,72 +107,6 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
 
   if (!open) return null;
 
-  // ── Gate: not connected ──────────────────────────────────────────────────────
-  if (!isConnected) {
-    return (
-      <div
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-5 backdrop-blur-md"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <div className="relative w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-8 text-center">
-          <button
-            className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--border)] text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-            onClick={onClose}
-          >✕</button>
-          <div className="mb-4 text-5xl">🤦</div>
-          <h2 className="mb-2 text-xl font-bold">Submit a Fail</h2>
-          <p className="mb-6 text-sm text-[var(--muted)]">Connect your wallet to get started.</p>
-          <div className="flex justify-center">
-            <ConnectButton />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Gate: connected but not a member ─────────────────────────────────────────
-  if (!memberLoading && !member) {
-    return (
-      <div
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-5 backdrop-blur-md"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <div className="relative w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-8 text-center">
-          <button
-            className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--border)] text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-            onClick={onClose}
-          >✕</button>
-          <div className="mb-4 text-5xl">🔒</div>
-          <h2 className="mb-2 text-xl font-bold">Members only</h2>
-          <p className="mb-2 text-sm text-[var(--muted)]">
-            One-time <span className="font-semibold text-[var(--text)]">$2 USDC</span> signup. Spam solved.
-          </p>
-          <p className="mb-6 text-xs text-[var(--muted)]">
-            50% buys &amp; burns $CLAWDIA. 50% keeps the lights on.
-          </p>
-          <button
-            onClick={() => { onClose(); onNeedSignup(); }}
-            className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-semibold text-white hover:brightness-110 transition-all"
-          >
-            Sign up — $2 USDC
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Loading state ─────────────────────────────────────────────────────────────
-  if (memberLoading) {
-    return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-5 backdrop-blur-md">
-        <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-8 text-center">
-          <p className="text-sm text-[var(--muted)]">Checking membership…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Full form (members only) ──────────────────────────────────────────────────
   return (
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-5 backdrop-blur-md"
@@ -188,133 +123,153 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
           Caught an agent hallucinating, looping, or just completely unhinged? We need this.
         </p>
 
-        {/* Screenshot upload */}
-        <div className="mb-4">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-            Screenshot <span className="text-[var(--accent)]">*</span>
-          </label>
-          <div
-            className="relative cursor-pointer rounded-xl border-2 border-dashed border-[var(--border)] p-6 text-center transition-colors hover:border-[var(--accent)]"
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={e => e.preventDefault()}
-            onDrop={e => { e.preventDefault(); handleFileChange(e.dataTransfer.files[0] ?? null); }}
-          >
+        {/* Gate: must be a member */}
+        {!address || !member ? (
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-[oklch(0.72_0.2_25/0.25)] bg-[oklch(0.72_0.2_25/0.08)] p-4">
+            <span className="text-2xl">🔒</span>
+            <div>
+              <p className="text-sm text-[var(--text)]">
+                You need to{' '}
+                <button className="font-semibold text-[var(--accent)] hover:underline" onClick={onNeedSignup}>
+                  sign up
+                </button>{' '}
+                ($2 USDC one-time) to submit.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Form (always visible for preview, disabled if not a member) */}
+        <fieldset disabled={!member} className="disabled:opacity-60 disabled:pointer-events-none">
+
+          {/* Screenshot upload */}
+          <div className="mb-4">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              Screenshot <span className="text-[var(--accent)]">*</span>
+            </label>
+            <div
+              className="relative cursor-pointer rounded-xl border-2 border-dashed border-[var(--border)] p-6 text-center transition-colors hover:border-[var(--accent)]"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={e => e.preventDefault()}
+              onDrop={e => { e.preventDefault(); handleFileChange(e.dataTransfer.files[0] ?? null); }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
+              />
+              {previewUrl ? (
+                <img src={previewUrl} alt="preview" className="mx-auto max-h-48 rounded-lg object-contain" />
+              ) : (
+                <>
+                  <div className="mb-1 text-3xl">📸</div>
+                  <p className="text-sm text-[var(--muted)]">Click or drag to upload</p>
+                  <p className="text-xs text-[var(--muted)]">PNG, JPG up to 10MB</p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div className="mb-4">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              Title <span className="text-[var(--accent)]">*</span>
+            </label>
             <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
+              type="text"
+              maxLength={120}
+              placeholder='e.g. "Confidently scheduled a reminder in 1998"'
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
             />
-            {previewUrl ? (
-              <img src={previewUrl} alt="preview" className="mx-auto max-h-48 rounded-lg object-contain" />
-            ) : (
-              <>
-                <div className="mb-1 text-3xl">📸</div>
-                <p className="text-sm text-[var(--muted)]">Click or drag to upload</p>
-                <p className="text-xs text-[var(--muted)]">PNG, JPG up to 10MB</p>
-              </>
-            )}
           </div>
-        </div>
 
-        {/* Title */}
-        <div className="mb-4">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-            Title <span className="text-[var(--accent)]">*</span>
+          {/* Source link */}
+          <div className="mb-4">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              Source link <span className="text-[var(--accent)]">*</span>
+              <span className="ml-1 font-normal normal-case text-[var(--muted)]">— link to the original convo so others can verify</span>
+            </label>
+            <input
+              type="url"
+              placeholder="https://x.com/... or discord.com/... or session URL"
+              value={sourceLink}
+              onChange={e => setSourceLink(e.target.value)}
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
+            />
+          </div>
+
+          {/* Caption */}
+          <div className="mb-4">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              Caption <span className="text-[var(--muted)] font-normal normal-case">(optional)</span>
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Add context — what did you ask it to do?"
+              value={caption}
+              onChange={e => setCaption(e.target.value)}
+              className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
+            />
+          </div>
+
+          {/* Agent + fail type */}
+          <div className="mb-4 flex gap-3">
+            <div className="flex-1">
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Agent</label>
+              <select
+                value={agent}
+                onChange={e => setAgent(e.target.value)}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+              >
+                {AGENTS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Fail type</label>
+              <select
+                value={failType}
+                onChange={e => setFailType(e.target.value)}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+              >
+                {FAIL_TYPES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Consent checkbox */}
+          <label className="mb-5 flex cursor-pointer items-start gap-2 text-xs text-[var(--muted)]">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              className="mt-0.5 accent-[var(--accent)]"
+            />
+            I confirm this screenshot doesn't contain private information and I have the right to share it.
           </label>
-          <input
-            type="text"
-            maxLength={120}
-            placeholder='e.g. "Confidently scheduled a reminder in 1998"'
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
-          />
-        </div>
 
-        {/* Source link */}
-        <div className="mb-4">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-            Source link <span className="text-[var(--accent)]">*</span>
-            <span className="ml-1 font-normal normal-case text-[var(--muted)]">— link to the original convo so others can verify</span>
-          </label>
-          <input
-            type="url"
-            placeholder="https://x.com/... or discord.com/... or session URL"
-            value={sourceLink}
-            onChange={e => setSourceLink(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
-          />
-        </div>
-
-        {/* Caption */}
-        <div className="mb-4">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-            Caption <span className="text-[var(--muted)] font-normal normal-case">(optional)</span>
-          </label>
-          <textarea
-            rows={2}
-            placeholder="Add context — what did you ask it to do?"
-            value={caption}
-            onChange={e => setCaption(e.target.value)}
-            className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
-          />
-        </div>
-
-        {/* Agent + fail type */}
-        <div className="mb-4 flex gap-3">
-          <div className="flex-1">
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Agent</label>
-            <select
-              value={agent}
-              onChange={e => setAgent(e.target.value)}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+          {/* Actions */}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => { reset(); onClose(); }}
+              className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--bg-card-hover)] transition-colors"
             >
-              {AGENTS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Fail type</label>
-            <select
-              value={failType}
-              onChange={e => setFailType(e.target.value)}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {FAIL_TYPES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-            </select>
+              {submitting ? '⏳ Posting…' : '🔥 Post it'}
+            </button>
           </div>
-        </div>
-
-        {/* Consent checkbox */}
-        <label className="mb-5 flex cursor-pointer items-start gap-2 text-xs text-[var(--muted)]">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={e => setAgreed(e.target.checked)}
-            className="mt-0.5 accent-[var(--accent)]"
-          />
-          I confirm this screenshot doesn&apos;t contain private information and I have the right to share it.
-        </label>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => { reset(); onClose(); }}
-            className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--bg-card-hover)] transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? '⏳ Posting…' : '🔥 Post it'}
-          </button>
-        </div>
+        </fieldset>
       </div>
     </div>
   );
