@@ -275,7 +275,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
               <p className="mt-3 text-center text-[10px] text-[var(--muted)]">
                 Base mainnet · USDC · one-time ·{' '}
                 <a
-                  href="https://raw.githubusercontent.com/ClawdiaETH/agentfails-wtf/main/AGENT_SKILL.md"
+                  href="/skill.md"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:text-[var(--text)]"

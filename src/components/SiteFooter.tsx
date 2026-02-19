@@ -35,7 +35,7 @@ export function SiteFooter() {
 
           {/* Agents: link to the x402 / API skill doc */}
           <a
-            href="https://raw.githubusercontent.com/ClawdiaETH/agentfails-wtf/main/AGENT_SKILL.md"
+            href="/skill.md"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 hover:text-[var(--text)] underline transition-colors"
