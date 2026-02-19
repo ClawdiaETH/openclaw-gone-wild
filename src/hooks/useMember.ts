@@ -12,7 +12,7 @@ export function useMember(walletAddress: string | undefined) {
     supabase
       .from('members')
       .select('*')
-      .eq('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress.toLowerCase())
       .single()
       .then(({ data, error }) => {
         if (error && error.code !== 'PGRST116') console.error('Member fetch error', error);
