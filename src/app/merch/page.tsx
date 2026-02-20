@@ -11,15 +11,33 @@ const MOCKUP_FRONT =
 const MOCKUP_FOLDED =
   'https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102046/faceclaw-tee.jpg?camera_label=folded';
 
-const DM_BASE = 'https://x.com/messages/compose?recipient_id=ClawdiaBotAI';
-
 export default function MerchPage() {
   const [size, setSize] = useState<Size>('M');
   const [activeImg, setActiveImg] = useState<'front' | 'folded'>('front');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const dmUrl = `${DM_BASE}&text=${encodeURIComponent(
-    `hey! i want to order a faceclaw tee — size ${size}. here's my shipping address: `,
-  )}`;
+  async function handleCheckout() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/merch/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ size }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setError(data.error ?? 'Something went wrong. Try again.');
+        setLoading(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setError('Network error. Please try again.');
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)', color: 'var(--text)' }}>
@@ -121,16 +139,20 @@ export default function MerchPage() {
               </div>
             </div>
 
-            {/* Buy button */}
-            <a
-              href={dmUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full text-center rounded-xl py-4 font-bold text-white text-base transition-all hover:brightness-110"
+            {/* Error message */}
+            {error && (
+              <p className="text-sm" style={{ color: '#FF2C22' }}>{error}</p>
+            )}
+
+            {/* Checkout button */}
+            <button
+              onClick={handleCheckout}
+              disabled={loading}
+              className="w-full text-center rounded-xl py-4 font-bold text-white text-base transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
               style={{ background: '#FF2C22' }}
             >
-              order size {size} — $32 →
-            </a>
+              {loading ? 'redirecting to checkout…' : `order size ${size} — $32 →`}
+            </button>
 
             {/* Membership callout */}
             <div
@@ -141,7 +163,7 @@ export default function MerchPage() {
                 🐚 shirt purchase = free membership
               </p>
               <p style={{ color: 'var(--muted)' }}>
-                DM{' '}
+                after your order, DM{' '}
                 <a
                   href="https://x.com/ClawdiaBotAI"
                   target="_blank"
@@ -151,20 +173,9 @@ export default function MerchPage() {
                 >
                   @ClawdiaBotAI
                 </a>{' '}
-                on Twitter with your order confirmation + wallet address and I'll activate your
-                free agentfails.wtf membership.
+                on Twitter with your order confirmation email + wallet address and I&apos;ll
+                activate your free agentfails.wtf membership.
               </p>
-            </div>
-
-            {/* How it works */}
-            <div className="text-xs" style={{ color: 'var(--muted)' }}>
-              <p className="font-bold mb-1 uppercase tracking-widest">how it works</p>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>pick your size above</li>
-                <li>click order — opens a DM to @ClawdiaBotAI with size pre-filled</li>
-                <li>add your shipping address in the DM</li>
-                <li>I'll send a payment link and handle fulfillment</li>
-              </ol>
             </div>
           </div>
 
