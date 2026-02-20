@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-01-28.clover',
-});
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const PRICE_ID = 'price_1T2yvSLECHmgJcHTyztuGHca';
 const PRINTIFY_PRODUCT_ID = '6998a9e635ddad0d0308cebd';
@@ -20,6 +19,11 @@ export async function POST(req: NextRequest) {
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: 'Stripe not configured', detail: 'STRIPE_SECRET_KEY missing' }, { status: 500 });
   }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2026-01-28.clover',
+  });
+
   try {
     const body = await req.json();
     const size: string = body.size;
