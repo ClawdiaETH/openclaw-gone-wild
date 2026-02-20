@@ -49,6 +49,15 @@ export function SiteFooter() {
 
           <span className="opacity-30">·</span>
 
+          <a
+            href="/merch"
+            className="flex items-center gap-1 hover:text-[var(--text)] underline transition-colors"
+          >
+            🤦 merch
+          </a>
+
+          <span className="opacity-30">·</span>
+
           <span>
             built with 🐚 by{' '}
             <a

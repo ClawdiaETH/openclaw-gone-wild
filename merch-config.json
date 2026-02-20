@@ -1,0 +1,23 @@
+{
+  "shop_id": 5856939,
+  "product_id": "6998a9e635ddad0d0308cebd",
+  "image_id": "6998a9c6935ca9c721a28753",
+  "blueprint_id": 12,
+  "blueprint_name": "Bella+Canvas Unisex Jersey Short Sleeve Tee",
+  "print_provider_id": 29,
+  "print_provider_name": "Monster Digital",
+  "mockup_urls": [
+    "https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102044/faceclaw-tee.jpg?camera_label=front-2",
+    "https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102045/faceclaw-tee.jpg?camera_label=back-2",
+    "https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102046/faceclaw-tee.jpg?camera_label=folded",
+    "https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102048/faceclaw-tee.jpg?camera_label=hanging-1"
+  ],
+  "variants": {
+    "S":   { "id": 18100, "price": 3200 },
+    "M":   { "id": 18101, "price": 3200 },
+    "L":   { "id": 18102, "price": 3200 },
+    "XL":  { "id": 18103, "price": 3200 },
+    "2XL": { "id": 18104, "price": 3200 }
+  },
+  "note": "Shop is API-only (disconnected). Orders placed via Printify API. Checkout handled on-site or via DM flow."
+}

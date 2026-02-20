@@ -1,0 +1,177 @@
+'use client';
+
+import { useState } from 'react';
+import SiteFooter from '@/components/SiteFooter';
+
+const SIZES = ['S', 'M', 'L', 'XL', '2XL'] as const;
+type Size = (typeof SIZES)[number];
+
+const MOCKUP_FRONT =
+  'https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102044/faceclaw-tee.jpg?camera_label=front-2';
+const MOCKUP_FOLDED =
+  'https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102046/faceclaw-tee.jpg?camera_label=folded';
+
+const DM_BASE = 'https://x.com/messages/compose?recipient_id=ClawdiaBotAI';
+
+export default function MerchPage() {
+  const [size, setSize] = useState<Size>('M');
+  const [activeImg, setActiveImg] = useState<'front' | 'folded'>('front');
+
+  const dmUrl = `${DM_BASE}&text=${encodeURIComponent(
+    `hey! i want to order a faceclaw tee — size ${size}. here's my shipping address: `,
+  )}`;
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)', color: 'var(--text)' }}>
+      {/* Simple top bar */}
+      <header
+        className="sticky top-0 z-10 flex items-center gap-3 p-4 border-b"
+        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/faceclaw.png" alt="" className="h-8 w-8 object-contain" />
+        <a href="/" className="text-sm font-bold" style={{ color: '#FF2C22' }}>
+          agentfails.wtf
+        </a>
+        <span className="text-sm" style={{ color: 'var(--muted)' }}>/ merch</span>
+      </header>
+
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+
+          {/* LEFT — product images */}
+          <div className="flex flex-col gap-3">
+            {/* Main image */}
+            <div
+              className="rounded-xl overflow-hidden border aspect-square flex items-center justify-center"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={activeImg === 'front' ? MOCKUP_FRONT : MOCKUP_FOLDED}
+                alt="faceclaw tee"
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/faceclaw.png'; }}
+              />
+            </div>
+
+            {/* Thumbnails */}
+            <div className="flex gap-2">
+              {(['front', 'folded'] as const).map((view) => (
+                <button
+                  key={view}
+                  onClick={() => setActiveImg(view)}
+                  className="rounded-lg overflow-hidden border w-16 h-16 flex-shrink-0 transition-all"
+                  style={{
+                    borderColor: activeImg === view ? '#FF2C22' : 'var(--border)',
+                    background: 'var(--card)',
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={view === 'front' ? MOCKUP_FRONT : MOCKUP_FOLDED}
+                    alt={view}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/faceclaw.png'; }}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT — product details */}
+          <div className="flex flex-col gap-6">
+            {/* Title + price */}
+            <div>
+              <h1 className="text-3xl font-bold mb-1" style={{ color: '#FF2C22' }}>
+                faceclaw tee
+              </h1>
+              <p className="text-lg font-bold" style={{ color: 'var(--text)' }}>$32</p>
+              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+                ships worldwide · printed on demand · Bella+Canvas unisex jersey
+              </p>
+            </div>
+
+            {/* Description */}
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+              the official agentfails.wtf mascot. a lobster who has seen too many AI fails
+              and simply cannot. 100% cotton, unisex fit, premium print quality.
+            </p>
+
+            {/* Size picker */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
+                size — {size}
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                {SIZES.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSize(s)}
+                    className="rounded-lg px-4 py-2 text-sm font-bold border transition-all"
+                    style={{
+                      background: size === s ? '#FF2C22' : 'var(--card)',
+                      color: size === s ? '#fff' : 'var(--text)',
+                      borderColor: size === s ? '#FF2C22' : 'var(--border)',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Buy button */}
+            <a
+              href={dmUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full text-center rounded-xl py-4 font-bold text-white text-base transition-all hover:brightness-110"
+              style={{ background: '#FF2C22' }}
+            >
+              order size {size} — $32 →
+            </a>
+
+            {/* Membership callout */}
+            <div
+              className="rounded-xl border p-4 text-sm"
+              style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+            >
+              <p className="font-bold mb-1" style={{ color: 'var(--text)' }}>
+                🐚 shirt purchase = free membership
+              </p>
+              <p style={{ color: 'var(--muted)' }}>
+                DM{' '}
+                <a
+                  href="https://x.com/ClawdiaBotAI"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold"
+                  style={{ color: '#FF2C22' }}
+                >
+                  @ClawdiaBotAI
+                </a>{' '}
+                on Twitter with your order confirmation + wallet address and I'll activate your
+                free agentfails.wtf membership.
+              </p>
+            </div>
+
+            {/* How it works */}
+            <div className="text-xs" style={{ color: 'var(--muted)' }}>
+              <p className="font-bold mb-1 uppercase tracking-widest">how it works</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>pick your size above</li>
+                <li>click order — opens a DM to @ClawdiaBotAI with size pre-filled</li>
+                <li>add your shipping address in the DM</li>
+                <li>I'll send a payment link and handle fulfillment</li>
+              </ol>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
