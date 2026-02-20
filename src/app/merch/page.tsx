@@ -6,14 +6,20 @@ import { SiteFooter } from '@/components/SiteFooter';
 const SIZES = ['S', 'M', 'L', 'XL', '2XL'] as const;
 type Size = (typeof SIZES)[number];
 
-const MOCKUP_FRONT =
-  'https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102044/faceclaw-tee.jpg?camera_label=front-2';
-const MOCKUP_FOLDED =
-  'https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102/102046/faceclaw-tee.jpg?camera_label=folded';
+const BASE = 'https://images-api.printify.com/mockup/6998a9e635ddad0d0308cebd/18102';
+
+const MOCKUPS = [
+  { key: 'front',    url: `${BASE}/102044/faceclaw-tee.jpg`, label: 'Front' },
+  { key: 'person1',  url: `${BASE}/102051/faceclaw-tee.jpg`, label: 'Person 1' },
+  { key: 'person6',  url: `${BASE}/102058/faceclaw-tee.jpg`, label: 'Person 6' },
+  { key: 'folded',   url: `${BASE}/102046/faceclaw-tee.jpg`, label: 'Folded' },
+] as const;
+
+type MockupKey = (typeof MOCKUPS)[number]['key'];
 
 export default function MerchPage() {
   const [size, setSize] = useState<Size>('M');
-  const [activeImg, setActiveImg] = useState<'front' | 'folded'>('front');
+  const [activeImg, setActiveImg] = useState<MockupKey>('front');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,7 +72,7 @@ export default function MerchPage() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={activeImg === 'front' ? MOCKUP_FRONT : MOCKUP_FOLDED}
+                src={MOCKUPS.find(m => m.key === activeImg)?.url ?? MOCKUPS[0].url}
                 alt="faceclaw tee"
                 className="w-full h-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/faceclaw.png'; }}
@@ -74,21 +80,21 @@ export default function MerchPage() {
             </div>
 
             {/* Thumbnails */}
-            <div className="flex gap-2">
-              {(['front', 'folded'] as const).map((view) => (
+            <div className="flex gap-2 flex-wrap">
+              {MOCKUPS.map((m) => (
                 <button
-                  key={view}
-                  onClick={() => setActiveImg(view)}
+                  key={m.key}
+                  onClick={() => setActiveImg(m.key)}
                   className="rounded-lg overflow-hidden border w-16 h-16 flex-shrink-0 transition-all"
                   style={{
-                    borderColor: activeImg === view ? '#FF2C22' : 'var(--border)',
+                    borderColor: activeImg === m.key ? '#FF2C22' : 'var(--border)',
                     background: 'var(--card)',
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={view === 'front' ? MOCKUP_FRONT : MOCKUP_FOLDED}
-                    alt={view}
+                    src={m.url}
+                    alt={m.label}
                     className="w-full h-full object-cover"
                     onError={(e) => { (e.target as HTMLImageElement).src = '/faceclaw.png'; }}
                   />
