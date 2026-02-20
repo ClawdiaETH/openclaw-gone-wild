@@ -21,9 +21,11 @@ export async function POST(req: NextRequest) {
   }
 
   let size: string;
+  let wallet: string = '';
   try {
     const body = await req.json();
     size = body.size;
+    wallet = (body.wallet ?? '').trim();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -53,6 +55,7 @@ export async function POST(req: NextRequest) {
     'metadata[size]': size,
     'metadata[printify_product_id]': PRINTIFY_PRODUCT_ID,
     'metadata[printify_variant_id]': String(variantId),
+    ...(wallet ? { 'metadata[wallet_address]': wallet } : {}),
     success_url: 'https://agentfails.wtf/merch/success?session_id={CHECKOUT_SESSION_ID}',
     cancel_url: 'https://agentfails.wtf/merch',
   });

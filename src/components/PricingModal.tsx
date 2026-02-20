@@ -60,6 +60,22 @@ export function PricingModal({ open, onClose }: Props) {
           </p>
         </div>
 
+        {/* Shirt row */}
+        <div className="mb-4 rounded-xl border border-[#FF2C22]/30 bg-[#FF2C22]/07 p-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span className="font-semibold">
+              <a href="/merch" className="underline decoration-dotted hover:text-[#FF2C22] transition-colors">
+                Faceclaw tee
+              </a>
+            </span>
+            <span className="font-mono text-sm font-bold text-[#FF2C22]">Membership included</span>
+          </div>
+          <p className="text-xs text-[var(--muted)]">
+            Buy the $32 shirt and your wallet gets a free lifetime membership — no $2 USDC required.
+            Enter your wallet at checkout to link the account.
+          </p>
+        </div>
+
         <div className="mb-6 rounded-xl border border-[oklch(0.65_0.2_142/0.3)] bg-[oklch(0.65_0.2_142/0.08)] p-4">
           <p className="mb-2 text-sm font-semibold">How fees are used</p>
           <div className="space-y-1.5 text-xs text-[var(--muted)]">

@@ -21,6 +21,7 @@ type MockupKey = (typeof MOCKUPS)[number]['key'];
 export default function MerchPage() {
   const [size, setSize] = useState<Size>('M');
   const [activeImg, setActiveImg] = useState<MockupKey>('person1');
+  const [wallet, setWallet] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +32,7 @@ export default function MerchPage() {
       const res = await fetch('/api/merch/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ size }),
+        body: JSON.stringify({ size, wallet: wallet.trim() }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -146,6 +147,24 @@ export default function MerchPage() {
               </div>
             </div>
 
+            {/* Wallet input */}
+            <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
+                Your wallet address <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional — links free membership)</span>
+              </label>
+              <input
+                type="text"
+                value={wallet}
+                onChange={e => setWallet(e.target.value)}
+                placeholder="0x..."
+                className="w-full rounded-lg border px-3 py-2 text-sm font-mono bg-transparent outline-none focus:border-[#FF2C22] transition-colors"
+                style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+              />
+              <p className="mt-1.5 text-[10px]" style={{ color: 'var(--muted)' }}>
+                Enter your Base wallet and we'll automatically create your agentfails.wtf account when the order is confirmed — no $2 USDC needed.
+              </p>
+            </div>
+
             {/* Error message */}
             {error && (
               <p className="text-sm" style={{ color: '#FF2C22' }}>{error}</p>
@@ -164,24 +183,13 @@ export default function MerchPage() {
             {/* Membership callout */}
             <div
               className="rounded-xl border p-4 text-sm"
-              style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+              style={{ borderColor: '#FF2C22', borderWidth: '1px', background: 'rgba(255,44,34,0.05)' }}
             >
-              <p className="font-bold mb-1" style={{ color: 'var(--text)' }}>
-                🐚 shirt purchase = free membership
+              <p className="font-bold mb-1" style={{ color: '#FF2C22' }}>
+                🐚 shirt = free lifetime membership
               </p>
               <p style={{ color: 'var(--muted)' }}>
-                after your order, DM{' '}
-                <a
-                  href="https://x.com/ClawdiaBotAI"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold"
-                  style={{ color: '#FF2C22' }}
-                >
-                  @ClawdiaBotAI
-                </a>{' '}
-                on Twitter with your order confirmation email + wallet address and I&apos;ll
-                activate your free agentfails.wtf membership.
+                Enter your wallet address above and it&apos;ll be activated automatically once your order is confirmed. No $2 USDC required.
               </p>
             </div>
           </div>

@@ -11,6 +11,14 @@ export function Header({ onOpenSubmit }: { onOpenSubmit: () => void }) {
         <span style={{ color: '#FF2C22' }}>agentfails.wtf</span>
       </a>
       <div className="flex items-center gap-3">
+        {/* Merch link */}
+        <a
+          href="/merch"
+          className="hidden sm:flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+        >
+          🤦 merch
+        </a>
+
         {/* Primary action — filled accent button */}
         <button
           className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:brightness-110 transition-all"

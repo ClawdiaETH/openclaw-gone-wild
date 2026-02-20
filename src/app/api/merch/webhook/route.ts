@@ -105,12 +105,58 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     if (!resp.ok) {
       const errText = await resp.text();
       console.error('Printify order creation failed:', resp.status, errText);
-      return;
+      // Still try to register the member even if Printify fails
+    } else {
+      const order = await resp.json();
+      console.log('✅ Printify order created:', order.id, '| Stripe session:', session.id);
     }
 
-    const order = await resp.json();
-    console.log('✅ Printify order created:', order.id, '| Stripe session:', session.id);
+    // Auto-register member if wallet was provided at checkout
+    const walletAddress = session.metadata?.wallet_address;
+    if (walletAddress) {
+      await upsertShirtMember(walletAddress);
+    }
   } catch (err) {
     console.error('Error handling checkout.session.completed:', err);
+  }
+}
+
+async function upsertShirtMember(walletAddress: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Supabase env vars missing — cannot register shirt member');
+    return;
+  }
+
+  const normalizedWallet = walletAddress.trim().toLowerCase();
+  if (!normalizedWallet.startsWith('0x') || normalizedWallet.length < 10) {
+    console.warn('Invalid wallet address, skipping member registration:', normalizedWallet);
+    return;
+  }
+
+  // Upsert: if wallet already exists as a member, don't downgrade them
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/members`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Prefer': 'resolution=ignore-duplicates',
+      },
+      body: JSON.stringify({
+        wallet_address: normalizedWallet,
+        membership_type: 'shirt',
+      }),
+    },
+  );
+
+  if (res.ok || res.status === 201 || res.status === 409) {
+    console.log('✅ Shirt member registered:', normalizedWallet);
+  } else {
+    const err = await res.text();
+    console.error('Failed to register shirt member:', res.status, err);
   }
 }

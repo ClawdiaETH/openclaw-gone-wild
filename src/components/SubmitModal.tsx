@@ -341,6 +341,26 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
                 </div>
               </div>
 
+              {/* Shirt free-pass callout */}
+              <div className="mt-3 rounded-xl border border-[#FF2C22]/30 bg-[#FF2C22]/07 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-[var(--text)]">
+                      🤦 Buy the faceclaw tee → lifetime access.
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-[var(--muted)]">
+                      $32 shirt = $2 membership, included free. Enter your wallet at checkout.
+                    </p>
+                  </div>
+                  <a
+                    href="/merch"
+                    className="shrink-0 rounded-lg border border-[#FF2C22]/50 bg-[#FF2C22]/15 px-3 py-1.5 text-xs font-semibold text-[#FF2C22] hover:bg-[#FF2C22]/25 transition-colors"
+                  >
+                    Get shirt →
+                  </a>
+                </div>
+              </div>
+
               <p className="mt-3 text-center text-[10px] text-[var(--muted)]">
                 Base mainnet · USDC · one-time ·{' '}
                 <a
