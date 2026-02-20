@@ -17,6 +17,9 @@ const VARIANT_IDS: Record<string, number> = {
 };
 
 export async function POST(req: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Stripe not configured', detail: 'STRIPE_SECRET_KEY missing' }, { status: 500 });
+  }
   try {
     const body = await req.json();
     const size: string = body.size;
@@ -50,8 +53,13 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (err) {
+  } catch (err: any) {
     console.error('Stripe checkout error:', err);
-    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to create checkout session',
+      detail: err?.message ?? String(err),
+      type: err?.type,
+      code: err?.code,
+    }, { status: 500 });
   }
 }
