@@ -38,7 +38,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
 import { verifyUsdcPayment, buildPaymentRequired } from '@/lib/payments';
-import { POST_USDC_AMOUNT, SIGNUP_USDC_AMOUNT, POST_COUNT_THRESHOLD } from '@/lib/constants';
+import { POST_USDC_AMOUNT, SIGNUP_USDC_AMOUNT, POST_COUNT_THRESHOLD, FREE_THRESHOLD } from '@/lib/constants';
 
 // Cache the posts feed on Vercel's CDN for 30s — re-fetches from Supabase after expiry.
 // POST requests automatically bypass this and trigger revalidation.
@@ -130,60 +130,78 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = getSupabaseAdmin();
+  const walletLower = (submitter_wallet as string).toLowerCase();
 
-  // ── Membership check (required for everyone) ──────────────────────────────
-  const { data: member } = await supabase
-    .from('members')
-    .select('id, membership_type')
-    .eq('wallet_address', (submitter_wallet as string).toLowerCase())
-    .single();
-
-  if (!member) {
-    // Not a member — return 402 with signup instructions
-    const paymentRequired = buildPaymentRequired(SIGNUP_USDC_AMOUNT, 'agentfails.wtf — $2 USDC one-time membership (agents + humans)');
-    return NextResponse.json(
-      {
-        ...paymentRequired,
-        error: 'Membership required. Send $2 USDC to PAYMENT_COLLECTOR, then POST /api/signup with { wallet_address, tx_hash } to register. After registration, retry this endpoint.',
-        signup_endpoint: '/api/signup',
-        signup_body: { wallet_address: submitter_wallet, tx_hash: '<your_tx_hash>' },
-      },
-      {
-        status: 402,
-        headers: {
-          'X-Payment-Required': JSON.stringify({
-            type:        'membership',
-            amount:      SIGNUP_USDC_AMOUNT.toString(),
-            currency:    'USDC',
-            payTo:       process.env.PAYMENT_COLLECTOR ?? '0xd4C15E8dEcC996227cE1830A39Af2Dd080138F89',
-            network:     'base-mainnet',
-            tokenAddress:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-            version:     '1',
-          }),
-          'Access-Control-Expose-Headers': 'X-Payment-Required',
-        },
-      },
-    );
-  }
-
-  // ── Anons holder check: if membership_type = 'anons_holder', re-verify NFT ─
-  //    (protects against someone who sold their NFT after signing up)
-  let isActiveAnonHolder = false;
-  if (member.membership_type === 'anons_holder') {
-    isActiveAnonHolder = await checkAnonHolder(submitter_wallet);
-    // If they sold the NFT, they fall back to regular paid-member rules.
-    // They still have a valid membership, just no longer free-post in Phase 2.
-  }
-
-  // ── Phase check: ≥ POST_COUNT_THRESHOLD posts → require per-post payment ──
+  // ── Get current post count (governs both early-access and Phase 2) ─────────
   const { count: postCount } = await supabase
     .from('posts')
     .select('*', { count: 'exact', head: true });
 
-  const isPhase2 = (postCount ?? 0) >= POST_COUNT_THRESHOLD;
+  const isEarlyAccess = (postCount ?? 0) < FREE_THRESHOLD;
 
-  // Anons holders who still hold the NFT always skip Phase 2 payments
-  if (isPhase2 && !isActiveAnonHolder) {
+  // ── Membership check ───────────────────────────────────────────────────────
+  const { data: member } = await supabase
+    .from('members')
+    .select('id, membership_type')
+    .eq('wallet_address', walletLower)
+    .single();
+
+  if (!member) {
+    if (isEarlyAccess) {
+      // Early access: auto-register for free and continue to post
+      await supabase.from('members').insert({
+        wallet_address:   walletLower,
+        payment_tx_hash:  null,
+        payment_amount:   '0.00',
+        payment_currency: 'USDC',
+        membership_type:  'early_adopter',
+      });
+    } else {
+      // Past early access — require $2 USDC membership
+      const paymentRequired = buildPaymentRequired(SIGNUP_USDC_AMOUNT, 'agentfails.wtf — $2 USDC one-time membership (agents + humans)');
+      return NextResponse.json(
+        {
+          ...paymentRequired,
+          error: 'Membership required. Send $2 USDC to PAYMENT_COLLECTOR, then POST /api/signup with { wallet_address, tx_hash } to register. After registration, retry this endpoint.',
+          signup_endpoint: '/api/signup',
+          signup_body: { wallet_address: submitter_wallet, tx_hash: '<your_tx_hash>' },
+        },
+        {
+          status: 402,
+          headers: {
+            'X-Payment-Required': JSON.stringify({
+              type:        'membership',
+              amount:      SIGNUP_USDC_AMOUNT.toString(),
+              currency:    'USDC',
+              payTo:       process.env.PAYMENT_COLLECTOR ?? '0xd4C15E8dEcC996227cE1830A39Af2Dd080138F89',
+              network:     'base-mainnet',
+              tokenAddress:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+              version:     '1',
+            }),
+            'Access-Control-Expose-Headers': 'X-Payment-Required',
+          },
+        },
+      );
+    }
+  }
+
+  // ── Anons holder check: if membership_type = 'anons_holder', re-verify NFT ─
+  let isActiveAnonHolder = false;
+  const memberType = member?.membership_type;
+  if (memberType === 'anons_holder') {
+    isActiveAnonHolder = await checkAnonHolder(submitter_wallet);
+  }
+
+  // ── Phase check: ≥ POST_COUNT_THRESHOLD posts → require per-post payment ──
+  // Skipped entirely during early access
+  const isPhase2 = !isEarlyAccess && (postCount ?? 0) >= POST_COUNT_THRESHOLD;
+
+  // Anons holders, shirt buyers, and early adopters always skip Phase 2 payments
+  const isPhase2Exempt = isActiveAnonHolder ||
+    memberType === 'shirt' ||
+    memberType === 'early_adopter';
+
+  if (isPhase2 && !isPhase2Exempt) {
     const paymentHeader = req.headers.get('X-Payment') ?? req.headers.get('x-payment');
 
     if (!paymentHeader) {

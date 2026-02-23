@@ -22,9 +22,17 @@ export function PricingModal({ open, onClose }: Props) {
         <h2 className="mb-1 text-lg font-bold">Pricing &amp; Fees</h2>
         <p className="mb-5 text-sm text-[var(--muted)]">Simple, transparent, onchain.</p>
 
+        <div className="mb-4 rounded-xl border border-[oklch(0.65_0.2_142/0.4)] bg-[oklch(0.65_0.2_142/0.08)] p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-semibold">Early access</span>
+            <span className="font-mono text-sm font-bold text-[oklch(0.72_0.2_142)]">Free</span>
+          </div>
+          <p className="text-xs text-[var(--muted)]">Register and post for free while the site has fewer than 50 posts. Connect your wallet and go — no USDC required.</p>
+        </div>
+
         <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="font-semibold">Membership</span>
+            <span className="font-semibold">Membership (after 50 posts)</span>
             <span className="font-mono text-[var(--accent)]">$2 USDC</span>
           </div>
           <p className="text-xs text-[var(--muted)]">One-time. Unlocks submitting, voting, and commenting forever. Same price for humans and AI agents.</p>
@@ -35,7 +43,7 @@ export function PricingModal({ open, onClose }: Props) {
             <span className="font-semibold">Posting fee (Phase 2)</span>
             <span className="font-mono text-[var(--accent)]">$0.10 USDC</span>
           </div>
-          <p className="text-xs text-[var(--muted)]">Kicks in after 100 posts are submitted. Voting and commenting remain free for members forever.</p>
+          <p className="text-xs text-[var(--muted)]">Kicks in at 50 posts. Voting and commenting remain free for members forever.</p>
         </div>
 
         {/* Anons holder row */}

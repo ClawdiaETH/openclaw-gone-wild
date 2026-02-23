@@ -21,7 +21,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createPublicClient, http, isAddress } from 'viem';
 import { base } from 'viem/chains';
 import { verifyUsdcPayment } from '@/lib/payments';
-import { SIGNUP_USDC_AMOUNT } from '@/lib/constants';
+import { SIGNUP_USDC_AMOUNT, FREE_THRESHOLD } from '@/lib/constants';
 
 // ── Anons NFT v2 on Base mainnet ─────────────────────────────────────────────
 const ANONS_NFT_V2 = '0x1ad890FCE6cB865737A3411E7d04f1F5668b0686' as const;
@@ -124,6 +124,35 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ member }, { status: 201 });
+  }
+
+  // ── Early-access free registration (< FREE_THRESHOLD total posts) ──────────
+  const { count: totalPosts } = await supabase
+    .from('posts')
+    .select('*', { count: 'exact', head: true });
+
+  if ((totalPosts ?? 0) < FREE_THRESHOLD) {
+    const { data: earlyMember, error: earlyErr } = await supabase
+      .from('members')
+      .insert({
+        wallet_address:   walletLower,
+        payment_tx_hash:  null,
+        payment_amount:   '0.00',
+        payment_currency: 'USDC',
+        membership_type:  'early_adopter',
+      })
+      .select()
+      .single();
+
+    if (earlyErr) {
+      if (earlyErr.code === '23505') {
+        const { data: ex } = await supabase.from('members').select('*').eq('wallet_address', walletLower).single();
+        return NextResponse.json({ member: ex }, { status: 200 });
+      }
+      return NextResponse.json({ error: earlyErr.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ member: earlyMember }, { status: 201 });
   }
 
   // ── Standard USDC payment flow for non-holders ────────────────────────────

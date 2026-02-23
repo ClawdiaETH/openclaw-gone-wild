@@ -12,6 +12,7 @@ import {
   POST_USDC_AMOUNT,
   POST_COUNT_THRESHOLD,
   POST_USD_AMOUNT,
+  FREE_THRESHOLD,
 } from '@/lib/constants';
 import { showToast } from './Toast';
 import { PricingModal } from './PricingModal';
@@ -49,6 +50,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
   const [pricingOpen, setPricingOpen] = useState(false);
 
   const isMember = Boolean(address && member);
+  const isEarlyAccess = postCount < FREE_THRESHOLD;
   const isPhase2 = postCount >= POST_COUNT_THRESHOLD;
 
   const [title, setTitle]           = useState('');
@@ -284,7 +286,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
                     ['🤦‍♂️', 'Submit fails'],
                     ['🗳️', 'Vote'],
                     ['💬', 'Comment'],
-                    ['🆓', `Free posting (${postsLeft} posts left)`],
+                    ['🆓', isEarlyAccess ? `Free to join + post (${postsLeft} posts left)` : `Free posting (${postsLeft} posts left)`],
                   ].map(([icon, label]) => (
                     <span key={label} className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-3 py-1 text-xs">
                       <span>{icon}</span>
@@ -308,7 +310,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
                 onClick={onNeedSignup}
                 className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:brightness-110 transition-all"
               >
-                Sign up for $2 USDC →
+                {isEarlyAccess ? 'Join free →' : 'Sign up for $2 USDC →'}
               </button>
 
               {/* Anons holder free-pass callout */}
@@ -388,7 +390,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
                 <span>
                   {isPhase2
                     ? `💸 Phase 2 — $${POST_USD_AMOUNT} per post`
-                    : `🎟️ Phase 1 — free to post · ${postsLeft} posts left until $${POST_USD_AMOUNT}/post kicks in`}
+                    : `🎁 Early access — free to join + post · ${postsLeft} posts left`}
                 </span>
                 <button
                   onClick={() => setPricingOpen(true)}

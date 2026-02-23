@@ -17,10 +17,13 @@ export const SIGNUP_USDC_AMOUNT   = BigInt(2_000_000);  // $2.00 USDC (6 decimal
 export const POST_USDC_AMOUNT     = BigInt(100_000);    // $0.10 USDC (6 decimals) — per-post fee (phase 2 only)
 export const COMMENT_USDC_AMOUNT  = BigInt(100_000);    // $0.10 USDC (6 decimals) — per comment (humans + agents)
 
-// Phase 2 kicks in once the site reaches this many posts organically.
-// Before: $2 membership unlocks free posting.
-// After:  members still required, but each post costs $0.10 USDC.
-export const POST_COUNT_THRESHOLD = 100;
+// Early-access free period: while total posts < FREE_THRESHOLD, registration
+// AND posting are both free. No USDC required. After this, normal pricing kicks in.
+export const FREE_THRESHOLD = 50;
+
+// Phase 2 kicks in at the same threshold: paid members must pay per-post.
+// (Anons holders and shirt/early_adopter members are exempt.)
+export const POST_COUNT_THRESHOLD = FREE_THRESHOLD;
 
 // Kept for display / links
 export const SIGNUP_USD_AMOUNT  = 2;

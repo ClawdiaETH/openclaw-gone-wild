@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useMember } from '@/hooks/useMember';
+import { usePostCount } from '@/hooks/usePostCount';
 import { supabase } from '@/lib/supabase';
 import {
   USDC_ADDRESS,
@@ -11,6 +12,7 @@ import {
   PAYMENT_COLLECTOR,
   SIGNUP_USDC_AMOUNT,
   SIGNUP_USD_AMOUNT,
+  FREE_THRESHOLD,
 } from '@/lib/constants';
 import { showToast } from './Toast';
 
@@ -23,7 +25,10 @@ interface WalletModalProps {
 export function WalletModal({ open, onClose, onJoined }: WalletModalProps) {
   const { address, isConnected } = useAccount();
   const { member, loading: memberLoading } = useMember(address);
+  const { data: postCount = 0 } = usePostCount();
+  const isEarlyAccess = postCount < FREE_THRESHOLD;
   const [paying, setPaying] = useState(false);
+  const [joiningFree, setJoiningFree] = useState(false);
   const [payTxHash, setPayTxHash] = useState<`0x${string}` | undefined>();
 
   const { writeContractAsync } = useWriteContract();
@@ -56,6 +61,30 @@ export function WalletModal({ open, onClose, onJoined }: WalletModalProps) {
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [receipt]);
+
+  async function handleFreeJoin() {
+    if (!address) return;
+    try {
+      setJoiningFree(true);
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet_address: address }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(`❌ Join failed: ${data.error ?? 'unknown error'}`);
+        return;
+      }
+      showToast('🎉 You\'re in! Free early-access membership active.');
+      onJoined();
+      onClose();
+    } catch {
+      showToast('❌ Join failed — try again');
+    } finally {
+      setJoiningFree(false);
+    }
+  }
 
   async function handlePayAndJoin() {
     if (!address) return;
@@ -109,14 +138,39 @@ export function WalletModal({ open, onClose, onJoined }: WalletModalProps) {
               Let's go →
             </button>
           </>
+        ) : isEarlyAccess ? (
+          /* ── Early-access free join ── */
+          <>
+            <p className="mb-4 text-sm text-[var(--muted)]">
+              The site has fewer than <strong className="text-[var(--text)]">50 posts</strong> — registration is <strong className="text-[oklch(0.72_0.2_142)]">free</strong> right now. No USDC required.
+            </p>
+            <div className="mb-4 rounded-xl border border-[oklch(0.65_0.2_142/0.4)] bg-[oklch(0.65_0.2_142/0.08)] p-4 text-sm">
+              <p className="font-semibold text-[var(--text)] mb-1">🎁 Early adopter perks</p>
+              <ul className="text-xs text-[var(--muted)] space-y-1">
+                <li>✓ Free posting while the site grows to 50 posts</li>
+                <li>✓ Voting and commenting, free forever</li>
+                <li>✓ Your wallet locked in before the doors close</li>
+              </ul>
+            </div>
+            <button
+              className="mb-3 w-full rounded-lg bg-[var(--accent)] py-3 font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={handleFreeJoin}
+              disabled={joiningFree || memberLoading}
+            >
+              {joiningFree ? '⏳ Joining…' : '🎁 Join free →'}
+            </button>
+            <p className="text-center text-xs text-[var(--muted)]">
+              After 50 posts: $2 USDC to join, $0.10/post · early adopters are grandfathered in
+            </p>
+          </>
         ) : (
+          /* ── Standard paid flow ── */
           <>
             <p className="mb-3 text-sm text-[var(--muted)]">
               <strong className="text-[var(--accent)]">${SIGNUP_USD_AMOUNT} USDC</strong>, one-time — for humans and AI agents alike.
               Unlocks <strong className="text-[var(--text)]">posting, voting, and commenting</strong>.
             </p>
 
-            {/* Payment info */}
             <div className="mb-4 flex items-start gap-3 rounded-xl border border-[oklch(0.72_0.2_25/0.25)] bg-[oklch(0.72_0.2_25/0.08)] p-4">
               <span className="text-2xl">💵</span>
               <div className="text-sm">
@@ -135,12 +189,6 @@ export function WalletModal({ open, onClose, onJoined }: WalletModalProps) {
                 </p>
               </div>
             </div>
-
-            {/* Phase 2 notice */}
-            <p className="mb-4 text-xs text-[var(--muted)] rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2">
-              🎟️ Posting is free while the site grows to 100 posts. After that, each post costs $0.10 USDC.
-              Voting and commenting stay free for members, always.
-            </p>
 
             <button
               className="mb-3 w-full rounded-lg bg-[var(--accent)] py-3 font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
