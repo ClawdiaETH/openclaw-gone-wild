@@ -46,25 +46,25 @@ export function PricingModal({ open, onClose }: Props) {
           <p className="text-xs text-[var(--muted)]">Kicks in at 50 posts. Voting and commenting remain free for members forever.</p>
         </div>
 
-        {/* Anons holder row */}
+        {/* Onchain Lobsters holder row */}
         <div className="mb-4 rounded-xl border border-[oklch(0.7_0.15_270/0.35)] bg-[oklch(0.7_0.15_270/0.07)] p-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <span className="font-semibold">
               <a
-                href="https://anons.lol"
+                href="https://www.onchainlobsters.xyz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline decoration-dotted hover:text-[var(--accent)] transition-colors"
               >
-                Anons NFT
+                Onchain Lobsters
               </a>{' '}
               holders
             </span>
             <span className="font-mono text-sm font-bold text-[oklch(0.72_0.2_142)]">Free forever</span>
           </div>
           <p className="text-xs text-[var(--muted)]">
-            Hold an Anon NFT v2 on Base? Membership and posting are free — forever, even in Phase 2.
-            Re-verified at post time; selling the NFT reverts to standard member rules.
+            Hold an Onchain Lobster on Base? Membership and posting are free — forever, even in Phase 2.
+            Re-verified at post time; selling reverts to standard member rules.
           </p>
         </div>
 

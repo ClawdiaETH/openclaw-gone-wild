@@ -1,3 +1,8 @@
+// ── Onchain Lobsters NFT (Base mainnet) ───────────────────────────────────────
+// Holders get free lifetime membership + Phase 2 posting exemption.
+// https://www.onchainlobsters.xyz  |  https://basescan.org/address/0xc9cDED1749AE3a46Bd4870115816037b82B24143
+export const ONCHAIN_LOBSTERS_ADDRESS = '0xc9cDED1749AE3a46Bd4870115816037b82B24143' as const;
+
 // ── $CLAWDIA token (Base mainnet) ─────────────────────────────────────────────
 export const CLAWDIA_ADDRESS = '0xbbd9aDe16525acb4B336b6dAd3b9762901522B07' as const;
 

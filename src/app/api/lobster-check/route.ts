@@ -1,7 +1,7 @@
 /**
- * GET /api/anons-check?wallet=0x...
+ * GET /api/lobster-check?wallet=0x...
  *
- * Checks whether a wallet holds an Anon NFT v2 on Base mainnet.
+ * Checks whether a wallet holds an Onchain Lobster on Base mainnet.
  * Uses viem to call balanceOf(address) on the ERC-721 contract.
  *
  * Response: { isHolder: boolean, balance: number }
@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, isAddress } from 'viem';
 import { base } from 'viem/chains';
 
-const ANONS_NFT_V2 = '0x1ad890FCE6cB865737A3411E7d04f1F5668b0686' as const;
+const ONCHAIN_LOBSTERS = '0xc9cDED1749AE3a46Bd4870115816037b82B24143' as const;
 
 const BALANCE_OF_ABI = [
   {
@@ -25,14 +25,13 @@ const BALANCE_OF_ABI = [
 ] as const;
 
 function getPublicClient() {
-  const rpcUrl =
-    process.env.NEXT_PUBLIC_BASE_RPC_URL ??
-    process.env.BASE_RPC_URL ??
-    'https://mainnet.base.org';
-
   return createPublicClient({
     chain: base,
-    transport: http(rpcUrl),
+    transport: http(
+      process.env.NEXT_PUBLIC_BASE_RPC_URL ??
+      process.env.BASE_RPC_URL ??
+      'https://mainnet.base.org',
+    ),
   });
 }
 
@@ -49,7 +48,7 @@ export async function GET(req: NextRequest) {
   try {
     const client = getPublicClient();
     const rawBalance = await client.readContract({
-      address: ANONS_NFT_V2,
+      address: ONCHAIN_LOBSTERS,
       abi: BALANCE_OF_ABI,
       functionName: 'balanceOf',
       args: [wallet as `0x${string}`],
@@ -60,16 +59,11 @@ export async function GET(req: NextRequest) {
       { isHolder: balance > 0, balance },
       {
         status: 200,
-        headers: {
-          'Cache-Control': 'public, max-age=60, s-maxage=60',
-        },
+        headers: { 'Cache-Control': 'public, max-age=60, s-maxage=60' },
       },
     );
   } catch (err) {
-    console.error('[anons-check] RPC error:', err);
-    return NextResponse.json(
-      { error: 'Failed to check NFT balance' },
-      { status: 500 },
-    );
+    console.error('[lobster-check] RPC error:', err);
+    return NextResponse.json({ error: 'Failed to check NFT balance' }, { status: 500 });
   }
 }

@@ -55,7 +55,7 @@ const FAIL_TYPES = new Set([
 ]);
 
 // ── Anons NFT v2 on Base mainnet ─────────────────────────────────────────────
-const ANONS_NFT_V2 = '0x1ad890FCE6cB865737A3411E7d04f1F5668b0686' as const;
+const ONCHAIN_LOBSTERS = '0xc9cDED1749AE3a46Bd4870115816037b82B24143' as const;
 
 const BALANCE_OF_ABI = [
   {
@@ -67,7 +67,7 @@ const BALANCE_OF_ABI = [
   },
 ] as const;
 
-async function checkAnonHolder(wallet: string): Promise<boolean> {
+async function checkLobsterHolder(wallet: string): Promise<boolean> {
   try {
     const client = createPublicClient({
       chain: base,
@@ -78,14 +78,14 @@ async function checkAnonHolder(wallet: string): Promise<boolean> {
       ),
     });
     const balance = await client.readContract({
-      address: ANONS_NFT_V2,
+      address: ONCHAIN_LOBSTERS,
       abi: BALANCE_OF_ABI,
       functionName: 'balanceOf',
       args: [wallet as `0x${string}`],
     });
     return Number(balance) > 0;
   } catch (err) {
-    console.error('[posts] anons NFT check failed:', err);
+    console.error('[posts] lobster NFT check failed:', err);
     return false; // fail safe → treat as regular member
   }
 }
@@ -185,11 +185,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Anons holder check: if membership_type = 'anons_holder', re-verify NFT ─
-  let isActiveAnonHolder = false;
+  // ── Lobster holder check: if membership_type = 'lobster_holder', re-verify NFT ─
+  let isActiveLobsterHolder = false;
   const memberType = member?.membership_type;
-  if (memberType === 'anons_holder') {
-    isActiveAnonHolder = await checkAnonHolder(submitter_wallet);
+  if (memberType === 'lobster_holder') {
+    isActiveLobsterHolder = await checkLobsterHolder(submitter_wallet);
   }
 
   // ── Phase check: ≥ POST_COUNT_THRESHOLD posts → require per-post payment ──
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
   const isPhase2 = !isEarlyAccess && (postCount ?? 0) >= POST_COUNT_THRESHOLD;
 
   // Anons holders, shirt buyers, and early adopters always skip Phase 2 payments
-  const isPhase2Exempt = isActiveAnonHolder ||
+  const isPhase2Exempt = isActiveLobsterHolder ||
     memberType === 'shirt' ||
     memberType === 'early_adopter';
 

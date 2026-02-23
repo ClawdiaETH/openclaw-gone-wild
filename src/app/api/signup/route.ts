@@ -23,8 +23,8 @@ import { base } from 'viem/chains';
 import { verifyUsdcPayment } from '@/lib/payments';
 import { SIGNUP_USDC_AMOUNT, FREE_THRESHOLD } from '@/lib/constants';
 
-// ── Anons NFT v2 on Base mainnet ─────────────────────────────────────────────
-const ANONS_NFT_V2 = '0x1ad890FCE6cB865737A3411E7d04f1F5668b0686' as const;
+// ── Onchain Lobsters on Base mainnet ─────────────────────────────────────────────
+const ONCHAIN_LOBSTERS = '0xc9cDED1749AE3a46Bd4870115816037b82B24143' as const;
 
 const BALANCE_OF_ABI = [
   {
@@ -36,7 +36,7 @@ const BALANCE_OF_ABI = [
   },
 ] as const;
 
-async function checkAnonHolder(wallet: string): Promise<boolean> {
+async function checkLobsterHolder(wallet: string): Promise<boolean> {
   try {
     const client = createPublicClient({
       chain: base,
@@ -47,14 +47,14 @@ async function checkAnonHolder(wallet: string): Promise<boolean> {
       ),
     });
     const balance = await client.readContract({
-      address: ANONS_NFT_V2,
+      address: ONCHAIN_LOBSTERS,
       abi: BALANCE_OF_ABI,
       functionName: 'balanceOf',
       args: [wallet as `0x${string}`],
     });
     return Number(balance) > 0;
   } catch (err) {
-    console.error('[signup] anons NFT check failed:', err);
+    console.error('[signup] lobster NFT check failed:', err);
     return false; // fail open → fall through to payment check
   }
 }
@@ -95,9 +95,9 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Anons NFT holder fast-path (no payment required) ─────────────────────
-  const isHolder = await checkAnonHolder(wallet_address);
+  const isLobsterHolder = await checkLobsterHolder(wallet_address);
 
-  if (isHolder) {
+  if (isLobsterHolder) {
     const { data: member, error } = await supabase
       .from('members')
       .insert({
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         payment_tx_hash:  null,
         payment_amount:   '0.00',
         payment_currency: 'USDC',
-        membership_type:  'anons_holder',
+        membership_type:  'lobster_holder',
       })
       .select()
       .single();

@@ -69,7 +69,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
   const { writeContractAsync } = useWriteContract();
   const { data: payReceipt } = useWaitForTransactionReceipt({ hash: payTxHash });
 
-  // Anons holder free signup state
+  // Lobster holder free signup state
   const [joiningAsAnon, setJoiningAsAnon] = useState(false);
 
   useEffect(() => {
@@ -98,10 +98,10 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
     try {
       setJoiningAsAnon(true);
       // Check NFT balance first
-      const checkRes = await fetch(`/api/anons-check?wallet=${address}`);
+      const checkRes = await fetch(`/api/lobster-check?wallet=${address}`);
       const checkData = await checkRes.json();
       if (!checkRes.ok || !checkData.isHolder) {
-        showToast('❌ No Anons NFT found in this wallet');
+        showToast('❌ No Onchain Lobster found in this wallet');
         return;
       }
       // Call signup (no tx_hash needed for holders)
@@ -115,7 +115,7 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
         showToast(`❌ Join failed: ${signupData.error ?? 'unknown error'}`);
         return;
       }
-      showToast('🎉 Welcome! Anons holder — free forever.');
+      showToast('🎉 Welcome! Lobster holder — free forever.');
       onClose();
       onSubmitted(); // refresh member state in parent
     } catch {
@@ -313,19 +313,19 @@ export function SubmitModal({ open, onClose, onSubmitted, onNeedSignup }: Submit
                 {isEarlyAccess ? 'Join free →' : 'Sign up for $2 USDC →'}
               </button>
 
-              {/* Anons holder free-pass callout */}
+              {/* Onchain Lobsters free-pass callout */}
               <div className="mt-3 rounded-xl border border-[oklch(0.7_0.15_270/0.35)] bg-[oklch(0.7_0.15_270/0.07)] px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-[var(--text)]">
                       Hold an{' '}
                       <a
-                        href="https://anons.lol"
+                        href="https://www.onchainlobsters.xyz"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline decoration-dotted hover:text-[var(--accent)] transition-colors"
                       >
-                        Anon NFT
+                        Onchain Lobster
                       </a>
                       ? You&apos;re in free.
                     </p>
