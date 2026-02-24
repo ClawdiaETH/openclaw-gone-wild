@@ -3,13 +3,12 @@ import Stripe from 'stripe';
 
 export const runtime = 'nodejs';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-01-28.clover',
-});
-
 const PRINTIFY_SHOP_ID = '5856939';
 
 export async function POST(req: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2026-01-28.clover',
+  });
   const body = await req.text();
   const sig = req.headers.get('stripe-signature');
 
